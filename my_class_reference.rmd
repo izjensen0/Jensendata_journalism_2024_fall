@@ -108,5 +108,10 @@ maryland_winred_contributions |>
 maryland_winred_contributions |>
   arrange(desc(amount))
 
+
+#useful functions
+#arrange() automatically groups numerical variables from least to greatest but using desc() function allows for greatest to least
+#group_by() is helpful since it allows us to look data using the variable of interest and will be helpful for graphing
+#sum() min() max() and others allow us to gain information about the data without having to ask about each input or group separately
 ```
 
