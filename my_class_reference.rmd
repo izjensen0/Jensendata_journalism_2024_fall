@@ -1,6 +1,6 @@
 ---
 title: "Class Reference"
-author: "Derek Willis"
+author: "Isabelle Jensen"
 output:
   html_document:
     theme: cerulean
@@ -24,7 +24,8 @@ Consider this a personal guide to the commands and functions you will learn. In 
 The command to set a working directory is setwd(). For example, this sets the working directory to a directory called data_journalism_2024_fall inside a directory called jour472 located inside your home directory (the ~ is equivalent of /Users/[youruser] on a Mac).
 
 ```{r}
-setwd("~/jour472/data_journalism_2024_fall")
+setwd("C:/Users/izzoe/OneDrive/Documents/GitHub/Jensendata_journalism_2024_fall")
+
 ```
 
 ### How to install and load the tidyverse
@@ -32,4 +33,80 @@ setwd("~/jour472/data_journalism_2024_fall")
 ```{r}
 install.packages("tidyverse")
 library(tidyverse)
+install.packages("rmarkdown")
+library(rmarkdown)
+library(readr)
+library(dplyr)
 ```
+
+
+```{r}
+maryland_winred_contributions <- read_rds("https://thescoop.org/files/maryland_winred.rds")
+glimpse(maryland_winred_contributions)
+head(maryland_winred_contributions)
+
+#number of contributinos
+maryland_winred_contributions |>
+  group_by(memo_text) |>
+  summarise(
+    count_contribs = n()
+  )
+
+#number of contributions sorted high to low
+maryland_winred_contributions |>
+  group_by(memo_text) |>
+  summarise(
+    count_contribs = n()
+  ) |>
+  arrange(desc(count_contribs))
+
+#date of contribution sorted by the number of contributions
+maryland_winred_contributions |>
+  group_by(memo_text, date) |>
+  summarise(
+    count_contribs = n()
+  ) |>
+  arrange(desc(count_contribs))
+
+#trump was convicted on May 30th so his contributions were much higher than usually on May 30th and May 31st
+
+#funds sorted by total amount
+maryland_winred_contributions |>
+  group_by(memo_text) |>
+  summarise(
+    count_contribs = n(),
+    total_amount = sum(amount)
+  ) |>
+  arrange(desc(total_amount))
+
+#median and mean sorted by amount of contribution
+maryland_winred_contributions |>
+  group_by(memo_text) |>
+  summarise(
+    count_contribs = n(),
+    total_amount = sum(amount),
+    mean_amount = mean(amount),
+    median_amount = median(amount)
+  ) |>
+  arrange(desc(count_contribs))
+
+
+#add min max abd sort from max amount
+maryland_winred_contributions |>
+  group_by(memo_text) |>
+  summarise(
+    count_contribs = n(),
+    total_amount = sum(amount),
+    mean_amount = mean(amount),
+    median_amount = median(amount),
+    min_amount = min(amount),
+    max_amount = max(amount)
+  ) |>
+  arrange(desc(max_amount))
+
+#largest donation
+maryland_winred_contributions |>
+  arrange(desc(amount))
+
+```
+
