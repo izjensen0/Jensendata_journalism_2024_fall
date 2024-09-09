@@ -95,7 +95,7 @@ maryland_winred_contributions <- read_rds("pre_lab_01.rds")
 
 Once it loads, look at the environment window at right in RStudio for maryland_winred_contributions. It's next to a small blue circle with a white arrow in it. To the right of that, look at how many "obs" the dataset has ("obs" is short for observation, which is another way of saying rows or records). Look at how many variables it has (another way of saying columns or fields). Write the number of observations and variables below.
 
-**Answer**
+**Answer** 24
 
 ### Task 3: Glimpse data
 
@@ -105,7 +105,9 @@ Once it loads, look at the environment window at right in RStudio for maryland_w
 glimpse(maryland_winred_contributions)
 ```
 
-In the space below, write the data type for the "last_name" column and the "amount" columns (it's in light gray, offset by \< \>). Also offer your best guess as to what the "last_name" column and the "amount" column represent. **Answer**
+In the space below, write the data type for the "last_name" column and the "amount" columns (it's in light gray, offset by \< \>). Also offer your best guess as to what the "last_name" column and the "amount" column represent. **Answer**chr and dbl
+last name is probably the donors last name
+amount I assume is the amount of money that was donated
 
 ### Task 4: Examine data "head"
 
@@ -116,6 +118,7 @@ head(maryland_winred_contributions)
 ```
 
 In the space below, write the first and last name from the _second_ row of the data. **Answer**
+Peggy Mukai
 
 ### Task 5: Explore data with interactive dataframe
 
@@ -135,7 +138,7 @@ maryland_winred_contributions |>
 
 Describe what you think this code is doing below. What does the answer represent, compared to the results from `head()`?
 
-**Answer**
+**Answer**Its a list of the amount of donations per day going from earliest to latest.
 
 ### Task 7: Adding arrange()
 
@@ -152,7 +155,7 @@ maryland_winred_contributions |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result?
 
-**Answer**
+**Answer** This codeblock is the same info but organized by the amount of donations per day most to least instead of by dates. 
 
 ### Task 8: Multiple grouping
 
@@ -169,7 +172,7 @@ maryland_winred_contributions |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result?
 
-**Answer**
+**Answer** It has the organization that the donations were made to, the amount the donation was, and the amount of contributions to the organization.
 
 ### Task 9
 
@@ -187,7 +190,7 @@ maryland_winred_contributions |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result? 
 
-**Answer**
+**Answer**Its the organizationts, the number of contributions, and the total amount from the contributions. It is organized by most to least amount of total money contributed.
 
 ### Task 10: More descriptive statistics
 
@@ -207,7 +210,7 @@ maryland_winred_contributions |>
 
 Compared to the previous codeblock, what has changed and how did that affect the result? Glancing at the names, which of the top results from Maryland?
 
-**Answer**
+**Answer**This one is organized by the number of contributions. Hogan for Maryland is the top result from maryland.
 
 ### Task 11
 
@@ -227,4 +230,4 @@ maryland_winred_contributions |>
   arrange(desc(total_amount))
 ```
 
-Compared to the previous codeblock, what has changed and how did that affect the result? How is the data sorted? **Answer**
+Compared to the previous codeblock, what has changed and how did that affect the result? How is the data sorted? **Answer** This time it is grouped by city and it is ordered from most to least total amount contributed.
