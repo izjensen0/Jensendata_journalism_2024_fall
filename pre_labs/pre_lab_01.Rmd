@@ -1,7 +1,7 @@
 ---
 title: "pre_lab_01.Rmd"
-author: "Derek Willis"
-date: "2024-08-01"
+author: "Isabelle Jensen"
+date: "2024-09-09"
 output: html_document
 ---
 
@@ -30,13 +30,14 @@ The library function loads an R library such as the tidyverse, providing access 
 
 ### Task 1: The console
 
-**Task** In the console (look below), type 2+2 and hit enter. What does it return? Type your answer below. **Answer:**
+**Task** In the console (look below), type 2+2 and hit enter. What does it return? Type your answer below. **Answer:**4
 
 ### Task 2: Variables
 
 **Task** Put the following code -- which stores the numeral 2 as a variable called number -- in the console and hit enter.
 
 ```{r}
+2+2
 number <- 2
 ```
 
@@ -44,11 +45,15 @@ Then type this code to multiply the variable called number by itself.
 
 ```{r}
 number * number
+firstnumber <- 1
+secondnumber <- 2 
+(firstnumber + secondnumber) * secondnumber
+
 ```
 
 What does it return? Type your answer below:
 
-**Answer:**
+**Answer:** 4
 
 ### Task 3: Install packages
 
@@ -56,6 +61,7 @@ What does it return? Type your answer below:
 
 ```{r}
 install.packages('tidyverse')
+library("tidyverse")
 ```
 
 **Task** Add that
@@ -64,9 +70,10 @@ Then run the following code to install the rmarkdown library
 
 ```{r}
 install.packages('rmarkdown')
+library("rmarkdown")
 ```
 
-## Chapter 6
+## Chapter 6 (maybe chapter 11?)
 
 ### Task 1: Load libraries
 
