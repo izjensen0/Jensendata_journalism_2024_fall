@@ -34,6 +34,8 @@ We're going to load the slice of WinRed contribution data from West Virginia, wh
 **Task** Using the example from the pre_lab, write code to load the RDS file and assign it to a good variable name.
 
 ```{r}
+WestVir_winred_contributions <- read_rds("lab_01.rds")
+
 ```
 
 ## Examine Data
@@ -42,9 +44,10 @@ We're going to load the slice of WinRed contribution data from West Virginia, wh
 
 **Q1** How many rows and columns does this dataframe have?
 
-**A1**
+**A1** There are 40,441 rows and 24 columns.
 
 ```{r}
+glimpse(WestVir_winred_contributions)
 
 ```
 
@@ -52,38 +55,86 @@ We're going to load the slice of WinRed contribution data from West Virginia, wh
 
 **Q2** Which West Virginia city provided the largest number of contributions? How many?
 
-**A2**
+**A2** Charleston has the most contributions with 3,226 contributions.
 
 ```{r}
+WestVir_winred_contributions |>
+  group_by(city) |>
+  summarise(
+    count_contribs = n()
+  ) |>
+  arrange(desc(count_contribs))
 ```
 
 **Q3** Which West Virginia cities accounted for the fewest contributions? How many of them, roughly speaking?
 
-**A3**
+**A3** Allen Junction, Alum Bridge, BRIDGEPORT, Bergoo, Berkeley Springs, and Bloomingrose are a few of the 63 cities in West Virginia that only had one donation from their city. One is the lowest amount of donations from a city in our sample. Cities without donations were not included in the sample.
 
 ```{r}
+WestVir_winred_contributions |>
+  group_by(city) |>
+  summarise(
+    count_contribs = n()
+  ) |>
+  arrange(count_contribs)
+
+
+#just playing around to figure out how to do this without counting manually
+library(dplyr)
+
+cityonecontrib <- WestVir_winred_contributions |>
+  group_by(city) |>
+  summarise(count_contribs = n()) |>
+  filter(count_contribs == 1) |>
+  summarise(num_cities = n_distinct(city))
+
+print(cityonecontrib)
+
 ```
 
 **Q4** What's your best educated guess to explain why the city identified in question 2 had more contributions compared to the cities identified in question 3? Hint: you won't find the answer in the data, you'll need to do some quick web research. You do not need to write any code for this question, so no codeblock is provided.
 
-**A4**
+**A4** The cities with more people have the most donations. Charleston is the largest city in West Virginia which makes sense for having the most donations. On the other side cities like Allen Junction are very small and therefore have less donations come from them. I would also guess that people in really small cities like Allen Junction which has a population of 294 people, according to Bestplaces.net, have less resources. 
 
 **Q5** What recipient got the largest total amount of money? How many contributions did they receive and what was the average donation?
 
-**A5**
+**A5** TRUMP NATIONAL COMMITTEE JFC, INC received the largest total amount of money at $463,944. The received 14,063 contributions with a mean amount of $32.99 and a median amount of $20.24
 
 ```{r}
+WestVir_winred_contributions |>
+  group_by(memo_text) |>
+  summarise(
+   total_amount = sum(amount),
+   count_contribs = n(),
+    mean_amount = mean(amount),
+    median_amount = median(amount)
+  ) |>
+  arrange(desc(total_amount))
 ```
 
 **Q6** What is that top recipient and what explains its popularity? Hint: this will require web research, you won't be able to answer this purely from the data set. You do not need to write any code for this question, so no codeblock is provided.
 
-**A6**
+**A6** Trump is the top recipient. His popularity is in part due to the fact that he is a presidential candidate which tends to lend itself to being the race that gets the most donations. Trump is also an expert fundraiser. A large part of his fundraising this year comes from the fact that he was convicted and then shot at. Large events encourage fundraising. West Virginia is also a very Republican or red state so it makes sense that their donations would go towards the Republican competing for the highest office. 
 
 **Q7**. Using the answer from A5 as a starting point, produce a summary table that has the following information for each recipient: \* count of contributions \* total amount of all contributions \* the average contribution amount \* the median contribution amount \* the smallest contribution amount \* the largest contribution amount
 
 Store it as a variable object called `wv_summary` so that you can examine it with the data viewer. What newsworthy nuggets jump out at you that you could imagine dropping into a news story? Write a few summary sentences with overall findings.
 
-**A7**.
+**A7**. I think whats interesting about these donations for West Virginia is that the top candidates and organizations that received donations are either federal candidates, parties, or out of state Republicans. Federal candidates and parties is of course expected but what was less expected was the amount of donations to out of state Republicans rather than in state candidates. The first non federal candidates are the House Majority leader and the fourth ranking House Republican. The first West Virginia organization is the Republican party of West Virginia which has the 28th highest count of contributions. They have a fairly big senate race and yet Jim Justice only has 115 donations. The Republican in their gubernatorial race, Patrick Morrisey, has even less at 96 donations. It seems that money wise West Virginians are more concerned with races outside their state than the big races in them. 
+
 
 ```{r}
+wv_summary<-WestVir_winred_contributions |>
+  group_by(memo_text) |>
+  summarise(
+    count_contribs = n(),
+    total_amount = sum(amount),
+    mean_amount = mean(amount),
+    median_amount = median(amount),
+    min_amount = min(amount),
+    max_amount = max(amount)
+  ) |>
+  arrange(desc(count_contribs))
+
+print(wv_summary)
 ```
