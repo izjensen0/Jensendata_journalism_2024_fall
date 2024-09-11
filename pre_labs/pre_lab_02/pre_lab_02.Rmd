@@ -1,7 +1,7 @@
 ---
 title: "pre_lab_02.Rmd"
-author: "Derek Willis"
-date: "2024-08-01"
+author: "Isabelle Jensen"
+date: "2024-09-11"
 output: html_document
 ---
 
@@ -59,7 +59,7 @@ primary_24 |>
 
 Describe what you think this code is doing below.
 
-**Answer**
+**Answer** It is showing us what percentage of votes cast toward that person were made on election day rather than early or absentee. 
 
 ### Task 5: Better percentage calculation
 
@@ -90,7 +90,7 @@ primary_24 |>
 
 How did the results change from the previous task, and why?
 
-**Answer**
+**Answer** It put the candidates in order of how much of their vote total was received on election day from most to least so the first person listed got 100% of their votes on election day. 
 
 ### Task 7: Mutate with ordering, part 2
 
@@ -108,7 +108,7 @@ primary_24 |>
 
 Is this a more interesting or useful answer? Why?
 
-**Answer**
+**Answer** I think it is because we can see how valuable early voting and absentee voting are to certain candidates. Since these types of voting are less traditional and have become more polarizing since the 2020 election it is good to see what types of candidates it is important to. 
 
 ### Task 8: Standardize existing data using mutate
 
@@ -119,6 +119,7 @@ Let's load some campaign contribution data - in this case Maryland donors to Rep
 ```{r eval=FALSE}
 maryland_cities <- read_csv("data/winred_md_cities.csv")
 maryland_cities
+glimpse(maryland_cities)
 ```
 
 You'll notice that there's a mix of styles: "Baltimore" and "BALTIMORE" for example. R will think those are two different cities, and that will mean that any aggregates we create based on city won't be accurate.
@@ -134,11 +135,12 @@ standardized_maryland_cities <- maryland_cities |>
   mutate(
     upper_city = str_to_upper(city)
 )
+glimpse(standardized_maryland_cities)
 ```
 
 **Task** Search the Internet for tidyverse functions similar to str_to_upper. Name at least two and describe what they do.
 
-**Answer**
+**Answer** str_to_lower() converts to lower case. str_to_title() converts characters so that only the first letter of every word is capitalized. 
 
 There are lots of potential uses for standardization - addresses, zip codes, anything that can be misspelled or abbreviated.
 
@@ -196,7 +198,7 @@ maryland_winred_categories |>
 ```
 What's the largest category in terms of dollar amount?
 
-**Answer** 
+**Answer** The largest amount total is from the less than $100 donations. 
 
 Mutate is there to make your data more useful and to make it easier for you to ask more and better questions of it.
 
@@ -244,7 +246,7 @@ And now we only have five columns of data for whatever analysis we might want to
 
 Notice that we made a new variable to hold the result. Why is that important?
 
-**Answer**
+**Answer** If we don't hold it in a new variable we will not be able to use it or analyze it later. 
 
 ### Task 12: Combining filters
 
@@ -278,7 +280,7 @@ or_prince_georges <- primary_24 |> filter(county_name == "Prince George's County
 nrow(or_prince_georges)
 ```
 
-So there's 428 rows that are EITHER in Prince George's OR are governor results. OR is additive; AND is restrictive.
+So there's 428 rows that are EITHER in Prince George's OR are senator results. OR is additive; AND is restrictive.
 
 A general tip about using filter: it's easier to work your way towards the filter syntax you need rather than try and write it once and trust the result. Each time you modify your filter, check the results to see if they make sense. This adds a little time to your process but you'll thank yourself for doing it because it helps avoid mistakes.
 
@@ -306,7 +308,7 @@ maryland_expenses <- maryland_expenses |> mutate(expenditure_date=mdy(expenditur
 head(maryland_expenses)
 ```
 
-**Answer:**
+**Answer:** The date changed to year, month, day and now has the full four digit year. 
 
 Lubridate has functions for basically any type of character date format: mdy, ymd, even datetimes like ymd_hms.
 
@@ -342,4 +344,4 @@ So the month of June 2022 had the most expenditures by far in this data. We'll b
 
 Describe the values in the new `month` column - what do you think the data is showing here?
 
-**Answer**
+**Answer** The month column has the first day of each of the months that are represented in the data. I assume it uses the first day of the month to represent the entire month rather than splitting up the dates. It might keep them this way to make sure it is not grouping all Marchs for example but rather grouping by the specific march of each year. 
