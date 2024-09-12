@@ -1,0 +1,163 @@
+---
+title: "lab_02"
+author: "Isabelle Jensen"
+date: "2024-09-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries and establish settings
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load the tidyverse. If you have not installed the tidyverse already, remove the # from the next line and run it first.  
+# install.packages('tidyverse')
+library(tidyverse)
+library(lubridate)
+```
+
+## Load Data
+
+For this lab we'll be working with a slice of Maryland voter registration data: records of people who have registration dates this year through Aug. 7. Let's load it.
+
+```{r}
+md_voters_2024 <- read_rds("data/lab_02.rds")
+glimpse(md_voters_2024)
+```
+
+## Examine Data
+
+Take a look at the data, getting familiar with what it contains. Most of the columns should be self-explanatory, but there are two date columns: STATE_REGISTRATION_DATE and COUNTY_REGISTRATION_DATE. The former represents the date the person registered as a Maryland voter; the latter is when they registered in their current county. They may be the same, but if a voter moves from one county to another they will differ. This is important because if the two dates are the same, that's a pretty good indication that this is a *new* voter, someone who has no history of registering in Maryland. You'll need to keep that definition in mind.
+
+## Answer questions
+
+**Q1** How many voters appear to be *new* registrants since July 21, when President Joe Biden announced he would leave the race, based on the information above? Create a dataframe to hold the only those voters. Which counties have seen the most? Take a look at county population figures here and compare the two in your answer: https://worldpopulationreview.com/us-counties/maryland.
+
+**A1** Once I limited the data to only have state and county registration dates that matches and only be greater than July 21st, I was left with 17,099 observations in other words there are 17,099 newly registered people in Maryland after Biden dropped out of the race. The top counties for newly registered voters are Montgomery, Baltimore City, Baltimore County, Prince George's, and Anne Arundel. The order for newly registered voters is not an exact match to counties with the highest population but the counties with the most newly registered voters are counties with the highest population in the state. For example, Baltimore city is the fifth most populous county in the state but is second in newly registered voters. This could be for a number of reasons but I suspect that the large democratic population there was encouraged by Kamala Harris' nomination. 
+
+```{r}
+md_new_reg <- md_voters_2024 |> filter(STATE_REGISTRATION_DATE   == COUNTY_REGISTRATION_DATE & STATE_REGISTRATION_DATE >= "2024-07-21")
+head(md_new_reg)
+glimpse(md_new_reg)
+md_new_reg |>
+  group_by(COUNTY) |>
+  summarise(
+    LASTNAME = n(),
+  ) |>
+  arrange(desc(LASTNAME))
+
+```
+
+**Q2** A better question is whether the new voters you found in Q1 are an outlier compared to other weeks this year. Using the original dataframe with 2024 registrants, use `mutate()` and lubridate to produce week numbers from the COUNTY_REGISTRATION_DATE (Lubridate has a function that turns a date into a week number. Use that to answer this question). Save that to the original dataframe. Then calculate how many voters are in each week. Describe the distribution of voters groups in a sentence - are the weeks from July 21-August 7 different from the rest, and if so, how?
+
+**A2**The first two weeks after Biden dropped out were two of the highest registration weeks at numbers 2 and 3. Our data after that seems limited but registration seems to calm down. Late July is different than other weeks because of it's high registration rates but not as much as I would expect because it is outdone by the week of June 10th. I don't know why this is maybe a lasting effect of Trump's conviction. 
+
+```{r}
+head(md_voters_2024$COUNTY_REGISTRATION_DATE)
+
+md_voters_2024 |>
+  mutate(week = week(COUNTY_REGISTRATION_DATE)) |>
+  group_by(week) |>
+  summarise(
+    LASTNAME = n()
+  ) |>
+  arrange(desc(LASTNAME))
+md_voters_2024$week<-  md_voters_2024 |> mutate(week = week(COUNTY_REGISTRATION_DATE))
+md_voters_2024$week
+
+md_voters_2024 |>
+  mutate(week = week(COUNTY_REGISTRATION_DATE)) |>
+  group_by(week) |>
+  summarise(
+    LASTNAME = n(),
+  COUNTY_REGISTRATION_DATE = COUNTY_REGISTRATION_DATE) |>
+  arrange(desc(LASTNAME))
+
+#week 24, 30, 31, 28, 25, 26, 11, 27, 12, 29
+#24- 2024-06-11-15
+
+md_voters_2024 |>
+  mutate(
+    week = week(COUNTY_REGISTRATION_DATE),
+    start_of_week = floor_date(COUNTY_REGISTRATION_DATE, "week", week_start = 1),
+   end_of_week = ceiling_date(COUNTY_REGISTRATION_DATE, "week")
+  ) |>
+  group_by(week, start_of_week, end_of_week) |>
+  summarise(
+    LASTNAME = n()
+  ) |>
+  arrange(desc(LASTNAME))
+
+
+
+```
+
+**Q3** Using lubridate, show which month saw the largest number of registrations. Does the answer help shed more light on Q2?
+**A3** This data shows that July did have the largest amount of registrations. This helps clarify that although neither week in July was the most registration of the year that combined July had the biggest impact on registration. 
+
+```{r}
+md_voters_2024 |>
+  mutate(month = month(COUNTY_REGISTRATION_DATE)) |>
+  group_by(month) |>
+  summarise(
+    LASTNAME = n()
+  ) |>
+  arrange(desc(LASTNAME))
+
+```
+
+**Q4** Maryland has, officially, five regions: https://www.visitmaryland.org/article/maryland-regions. Modify the original dataframe again to add a `region` column based on the `COUNTY` value using case_when. Are you going to have to do this for every Maryland county plus Baltimore City? Yes, you are. Which regions and parties account for the most new voters?
+
+**A4** The Central Region had the most new voters/ new registrations followed by the capital region. This makes sense based on the population of these regions. The Democratic party recieved the most new registrations followed by UNA which I assume means unaffiliated. 
+
+```{r}
+md_voters_2024$COUNTY
+md_voters_2024 <- md_voters_2024 |>
+  mutate(
+    region = case_when(
+        COUNTY == "Garrett" | "Allegany" | "Washington" ~ "Western Maryland",
+        COUNTY == "Frederick" | "Montgomery" | "Prince George's" ~ "Capital Region",
+        COUNTY == "Anne Arundel" | "Baltimore City" | "Baltimore County" | "Carroll" |"Harford" | "Howard" ~ "Central Region",
+        COUNTY == "Calvert" | "Charles" | "Saint Mary's" ~ "Southern Region",
+        COUNTY == "Kent" | "Queen Anne's" | "Talbot" | "Caroline" |"Dorchester" | "Wicomico" | "Somerset" | "Worcester" | "Cecil" ~ "Eastern Shore Region"
+      )
+  )
+#####^^ this did not work had to decide between putting county== for each county or %in% based on research 
+
+
+md_voters_2024 <- md_voters_2024 |>
+  mutate(
+    region = case_when(
+      COUNTY %in% c("Garrett", "Allegany", "Washington") ~ "Western Maryland",
+      COUNTY %in% c("Frederick", "Montgomery", "Prince George's") ~ "Capital Region",
+      COUNTY %in% c("Anne Arundel", "Baltimore City", "Baltimore County", "Carroll", "Harford", "Howard") ~ "Central Region",
+      COUNTY %in% c("Calvert", "Charles", "Saint Mary's") ~ "Southern Region",
+      COUNTY %in% c("Kent", "Queen Anne's", "Talbot", "Caroline", "Dorchester", "Wicomico", "Somerset", "Worcester", "Cecil") ~ "Eastern Shore Region",
+    )
+  )
+head(md_voters_2024)
+
+md_voters_2024 |>
+  group_by(region) |>
+  summarise(
+    LASTNAME = n()
+  ) |>
+  arrange(desc(LASTNAME))
+
+md_voters_2024 |>
+  group_by(PARTY) |>
+  summarise(
+    LASTNAME = n()
+  ) |>
+  arrange(desc(LASTNAME))
+
+```
+
+**Q5** What's an additional question you could ask of this data?
+
+**A5** I think two possibly interesting variables are the districts and gender. There is a fair amount of data for legislative districts and I wonder if districts with more interesting races have more new registrations. I'd also be interested to see if more women registered after Joe Biden dropped out of the race then men given that Kamala is the new candidate. 
