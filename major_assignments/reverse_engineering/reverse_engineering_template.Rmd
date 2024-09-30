@@ -62,6 +62,30 @@ King  <-  King |>
 
 Moore$Contributor.Address
 
+unique(Moore$state)
+unique(Perez$state)
+unique(King$state)
+glimpse(Moore)
+
+#found some incorrect state names trying to fix
+Moore <- Moore |> 
+  mutate(state = str_extract(Contributor.Address, "\\b[A-Z]{2}(?= \\d{5}$)"))
+
+Perez <- Perez |> 
+  mutate(state = str_extract(Contributor.Address, "\\b[A-Z]{2}(?= \\d{5}$)"))
+
+King <- King |> 
+  mutate(state = str_extract(Contributor.Address, "\\b[A-Z]{2}(?= \\d{5}$)"))
+
+Franchot <- Franchot |> 
+  mutate(state = str_extract(Contributor.Address, "\\b[A-Z]{2}(?= \\d{5}$)"))
+
+# Check the unique values again
+unique(Moore$state)
+unique(Perez$state)
+unique(King$state)
+unique(Franchot$state)
+
 ```
 
 ## Sentences to Engineer
@@ -123,11 +147,26 @@ King |>
 
 ### Sentence 2
 
-* **Sentence text**: [Paste in sentence to engineer here]
+* **Sentence text**: Moore, a U.S. Army veteran and bestselling author, built a campaign war chest that included over $2.3 million in out-of-state contributions. Tom Perez, a former leader of the Democratic National Committee, raised nearly $1.7 million in donations from outside Maryland.
+
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
 # Put code to reverse engineer sentence here
+
+
+Moore_outofstate <- Moore |> 
+  filter(state != "MD") |>            
+  summarize(total_amount = sum(Contribution.Amount, na.rm = TRUE))
+Moore_outofstate
+#$2,386,593
+
+Perez_outofstate <- Perez |> 
+  filter(state != "MD") |>          
+  summarize(total_amount = sum(Contribution.Amount, na.rm = TRUE))
+Perez_outofstate
+#$1,695,893
+
 
 # Display results of code below this codeblock
 
@@ -135,11 +174,28 @@ King |>
 
 ### Sentence 3
 
-* **Sentence text**: [Paste in sentence to engineer here]
+* **Sentence text**: John B. King, former secretary of Education under President Barack Obama, raised $2.2 million in campaign funding last year. Only 11%, just under $240,000, came from Maryland donors. King raised over $534,000 in New York alone.
+
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
 # Put code to reverse engineer sentence here
+Kingtotalfunding <- King |> 
+  summarize(total_amount = sum(Contribution.Amount, na.rm = TRUE))
+Kingtotalfunding
+#$2,199,015
+
+King |> 
+  filter(state == "MD") |> 
+  group_by(state) |> 
+  summarise(
+    total = sum(Contribution.Amount)
+  ) |> 
+  arrange(desc(total))
+#$238,092
+
+238092/2199015
+#0.1082721
 
 # Display results of code below this codeblock
 
@@ -147,11 +203,30 @@ King |>
 
 ### Sentence 4
 
-* **Sentence text**: [Paste in sentence to engineer here]
+* **Sentence text**:Moore, King and Perez stand in stark contrast to Peter Franchot, a former Maryland state delegate and current comptroller, who raised over 78% of his $1.66 million from inside Maryland.
+
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
 # Put code to reverse engineer sentence here
+
+Franchottotalfunding <- Franchot |> 
+  summarize(total_amount = sum(Contribution.Amount, na.rm = TRUE))
+Franchottotalfunding
+#total funding $1,663,516
+
+Franchot |> 
+  filter(state == "MD") |> 
+  group_by(state) |> 
+  summarise(
+    total = sum(Contribution.Amount)
+  ) |> 
+  arrange(desc(total))
+# Maryland funds $1,104,710
+
+1104710/1663516	
+#0.6640814
+#potential problem with replication Im finding here that around 66% of Franchot's funds came from Maryland compared to what the article said which was 78%
 
 # Display results of code below this codeblock
 
@@ -159,11 +234,30 @@ King |>
 
 ### Sentence 5
 
-* **Sentence text**: [Paste in sentence to engineer here]
+* **Sentence text**: “Less than a third of the money Perez raised, 31%, came from Maryland donors.”
+
 * **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
 
 ```{r}
 # Put code to reverse engineer sentence here
+
+Pereztotalfunding <- Perez |> 
+  summarize(total_amount = sum(Contribution.Amount, na.rm = TRUE))
+Pereztotalfunding
+#total funding perez $2,458,688	
+
+
+Perez |> 
+  filter(state == "MD") |> 
+  group_by(state) |> 
+  summarise(
+    total = sum(Contribution.Amount)
+  ) |> 
+  arrange(desc(total))
+#funding from maryland 736,344.4	
+
+736344.4	/2458688	
+#0.2994867 checks out less than a third from maryland
 
 # Display results of code below this codeblock
 
