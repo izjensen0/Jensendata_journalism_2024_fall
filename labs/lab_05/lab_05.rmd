@@ -1,0 +1,205 @@
+---
+title: "lab_05"
+author: "Isabelle Jensen"
+date: "2024-10-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries and establish settings
+
+```{r}
+# load the tidyverse
+library("tidyverse")
+```
+
+## Getting Started
+
+This week we'll be combining and joining data to make it more useful and to ask some questions about it. This week, we'll revisit our new Maryland voters data and try to join it with contributions to the Harris campaign from Maryland donors made via ActBlue. Can we find new voters who are not registered Democrats who gave to Harris after she became a presidential candidate on July 21? What, if anything, can we say about those people?
+
+We'll be doing something similar to what Ence Morse did for [this Washington Post story](https://www.washingtonpost.com/politics/2024/09/24/kamala-harris-younger-donors/?pwapi_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyZWFzb24iOiJnaWZ0IiwibmJmIjoxNzI3MzIzMjAwLCJpc3MiOiJzdWJzY3JpcHRpb25zIiwiZXhwIjoxNzI4NzA1NTk5LCJpYXQiOjE3MjczMjMyMDAsImp0aSI6ImIwYWMxNTk4LWMwMDgtNDE5Ny04MjAyLWVmMWNjZWFmYWZiMiIsInVybCI6Imh0dHBzOi8vd3d3Lndhc2hpbmd0b25wb3N0LmNvbS9wb2xpdGljcy8yMDI0LzA5LzI0L2thbWFsYS1oYXJyaXMteW91bmdlci1kb25vcnMvIn0.3-s0tBkMV7Y9DD21CBsKMlaliGlOKT2egCO-UFT735Y), just on a smaller scale.
+
+First, load two CSV contribution files in the `data` folder, one each for donations made in July and August, and then combine them into a single dataframe.
+
+```{r}
+# load the Harris contribution data files and combine them
+julyharris <- read_csv("data/july_harris.csv")
+augustharris <- read_csv("data/august_harris.csv")
+glimpse(julyharris)
+glimpse(augustharris)
+
+julyaugustharris<-  bind_rows(list(julyharris,augustharris))
+glimpse(julyaugustharris)
+
+```
+
+Next, let's read in the new voters (people who registered in 2024):
+
+```{r}
+# load the new voters data
+newvoters <- read_csv("data/new_voters.csv")
+glimpse(newvoters)
+
+```
+
+Next join the Harris donations to the voter data. Remember, people's names are common, __so you'll want to use name columns and address information__. You'll need to figure out which columns to use from both dataframes. The new_voters data has both a single Address column and various parts of the address, such as HouseNumber. Make a plan for picking your join columns - try out some combinations - and save the results to a new dataframe.
+
+```{r}
+# join the combined Harris file to the new voters
+# you will need to determine what columns to use
+
+
+newvoters |> 
+  left_join(julyaugustharris, join_by(Address == address_one, FirstName == first_name, LastName == last_name, MiddleName == middle_name)) |> 
+  nrow()
+
+harrisdonorsandnewvoters<-newvoters |> 
+  left_join(julyaugustharris, join_by(Address == address_one, FirstName == first_name, LastName == last_name, MiddleName == middle_name)) 
+
+glimpse(harrisdonorsandnewvoters)
+```
+
+## Answer questions
+
+Q1. Explain why you used the columns you did to make the join, and why that result is better than other ways you tried. Are there any problems with the join you made, such as the possibility of false positives?
+
+A1.  I used address, first, middle, and last name. First I just tried address but recieved the warning Detected an unexpected many-to-many relationship between x and y.[1] 119833. Meaning that there were too many duplicate addresses. The same issue happened when I tried first and last name. It took adding middle names to get the error to go away. There might be false positives in the join I made but the inclusion of middle names should limit it some. There is also the problem of juniors and people named after people that live with them. There also could be errors in the file in which the same person is listed at different addresses. People who have changed their last name could also be an issue. 
+
+Q2. Based on your join, how many donations to Harris have come from people who registered this year? How many unique people does that represent, and which donors have given the largest _number_ of donations since July 20? 
+
+A2. I found 53 donations from people who registed this year. That number represents 38 people. Veronia Barzelatto and Rilwan Johnson both gave money four times which was the highest number of donations. 
+
+```{r}
+
+harrisdonorsandnewvoters |> 
+ filter(str_detect(StateRegistrationDate, '^2024'), !is.na(amount)) |> 
+  summarise(total_donations = n())
+#53 donations
+
+harrisdonorsandnewvoters |> 
+ filter(str_detect(StateRegistrationDate  , '^2024')) |> 
+  group_by(LastName, FirstName ) 
+  summarise(
+    total_amount = sum(amount),
+    count = n()
+  ) |> 
+  arrange(desc(total_donations = n()))
+
+harrisdonorsandnewvoters |> 
+  filter(str_detect(StateRegistrationDate, '^2024')) |> 
+  group_by(LastName, FirstName) |> 
+  summarise(
+    total_amount = sum(amount, na.rm = TRUE),  
+    count = n() 
+  ) |> 
+  arrange(desc(count))
+
+
+harrisdonorsandnewvoters |> 
+ filter(str_detect(StateRegistrationDate, '^2024'), !is.na(amount), amount > 0) |>
+  group_by(LastName, FirstName) |> 
+  summarise(
+    total_amount = sum(amount),  
+    count = n() 
+  ) |> 
+  arrange(desc(count))
+
+
+harrisdonorsandnewvoters |> 
+  filter(str_detect(StateRegistrationDate, '^2024'), !is.na(amount), amount > 0, date                    > '2024-07-20') |> 
+  group_by(LastName, FirstName) |> 
+  summarise(
+    total_amount = sum(amount),  
+    count = n() 
+  ) |> 
+  arrange(desc(count))
+```
+
+Q3. What are the party and gender breakdowns of those donors? How many donations has Harris gotten from non-Democrats?
+
+A3. 31 out of the 38 donors were democrats. 20 were women. 16 donors were men. Two people did not list a gender but this does skew toward women donors. There were 7 non-Democrat donors and 8 non-democrat donations. One non-democrat donated twice. 
+
+```{r}
+harrisdonorsandnewvoters |> 
+  filter(str_detect(StateRegistrationDate, '^2024'), !is.na(amount), amount > 0, date                    > '2024-07-20') |> 
+  group_by(LastName, FirstName, Party, Gender) |> 
+  summarise(
+    total_amount = sum(amount),  
+    count = n() 
+  ) |> 
+  arrange(Party)
+
+harrisdonorsandnewvoters |> 
+  filter(str_detect(StateRegistrationDate, '^2024'), !is.na(amount), amount > 0, date                    > '2024-07-20') |> 
+  group_by(LastName, FirstName, Party, Gender) |> 
+  summarise(
+    total_amount = sum(amount),  
+    count = n() 
+  ) |> 
+  arrange(Gender)
+
+```
+
+Q4. Choose your own adventure: I want you to come up with a question you could ask of one of the dataframes we've created for this lab. It could involve just the new voters, or the donors or the joined dataframe, but it cannot be a variation of a previous question (so, for example, you can't ask, "How many Republicans have given to Harris"). First write the question and then try to answer it by writing code. If you're not sure of the exact code, try googling (or ask me for advice) but, at a minimum, describe what you think you'd have to do to answer it and what the results would look like. That can help.
+
+A4: What are the age demographics of donors to the campaign? What age demographic donates the most money? 
+
+I looked at donors, registered anytime, by their birthdate. The most common decade to be born in for donors was the 1980s followed by the 70s and the 90s. This makes sense middle aged people are generally financially stable and young enough to still care and have a large population. It's also possible that since democrats tend to be younger that this distribution would look different for a Republican candidate.
+
+As far as the amount of money, the two top donors were born in the 1990s. Weirdly the top five donors by amount were either born in the 1960s or 1990s. I really can't think of why that would be. There is probably some other variable here that has more predictive power than age when it comes to the amount. There also doesn't seem to be any perceivable pattern for the number of donations from each person when it comes to age. 
+
+90s babies gave the most money overall followed by the 60s, 80s, and then 70s. However this data, could be easily moved by one data point. Because of the small sample size, no concrete conclusions can be drawn. 
+
+
+```{r}
+
+harrisdonorsandnewvoters |> 
+  filter( !is.na(amount), amount > 0) |> 
+  group_by(LastName, FirstName,BirthDate) |> 
+  summarise(
+    total_amount = sum(amount),  
+    count = n() 
+  ) |> 
+  arrange(BirthDate)
+#1940s 2
+#1950s 3
+#1960s 4
+#1970s 7
+#1980s 11
+#1990s 7
+#2000s 4
+
+harrisdonorsandnewvoters |> 
+  filter( !is.na(amount), amount > 0) |> 
+  group_by(LastName, FirstName,BirthDate) |> 
+  summarise(
+    total_amount = sum(amount),  
+    count = n() 
+  ) |> 
+  arrange(desc(total_amount))
+
+harrisdonorsandnewvoters |> 
+  filter( !is.na(amount), amount > 0) |> 
+  group_by(LastName, FirstName,BirthDate) |> 
+  summarise(
+    total_amount = sum(amount),  
+    count = n() 
+  ) |> 
+  arrange(desc(count))
+
+
+library("lubridate")
+harrisdonorsandnewvoters |> 
+  filter(!is.na(amount), amount > 0) |> 
+  mutate(birth_decade = floor(year(BirthDate) / 10) * 10) |> 
+  group_by(birth_decade) |> 
+  summarise(
+    total_amount = sum(amount),  
+    count = n()   
+  ) |> 
+  arrange(desc(total_amount))
+
+```
