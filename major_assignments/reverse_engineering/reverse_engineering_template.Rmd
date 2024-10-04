@@ -43,8 +43,19 @@ King <- read_csv("data/King_ContributionsList.csv")
 Franchot <- read_csv("data/Franchot_ContributionsList.csv")
 Schulz <- read_csv("data/Schulz_ContributionsList.csv")
 Gansler <- read_csv("data/Gansler_ContributionsList.csv")
-glimpse(Perez)
 glimpse(Moore)
+#`Contribution Amount` 
+glimpse(Perez)
+#`Contribution Amount`
+glimpse(King)
+#`Contribution Amount`
+glimpse(Franchot)
+#`Contribution Amount`
+glimpse(Schulz)
+#`Contribution Amount`
+glimpse(Gansler)
+#`Contribution Amount`
+
 # Path to data should be loaded from folder "data" i.e. read_csv("data/name_of_data.csv")
 
 # Clean required data and prepare for analysis if needed. 
@@ -53,33 +64,23 @@ glimpse(Moore)
 ?str_sub_all()
 # all states are right before the zip code (-6 ch), and only have two letters (start at -8)
 Moore  <-  Moore |> 
-  mutate(state = str_sub(Contributor.Address, start=-8, end=-7))
+  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
 Perez  <-  Perez |> 
-  mutate(state = str_sub(Contributor.Address, start=-8, end=-7))
+  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
 King  <-  King |> 
-  mutate(state = str_sub(Contributor.Address, start=-8, end=-7))
+  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
-Moore$Contributor.Address
+Franchot  <-  Franchot |> 
+  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
-unique(Moore$state)
-unique(Perez$state)
-unique(King$state)
-glimpse(Moore)
+Schulz  <-  Schulz |> 
+  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
-#found some incorrect state names trying to fix
-Moore <- Moore |> 
-  mutate(state = str_extract(Contributor.Address, "\\b[A-Z]{2}(?= \\d{5}$)"))
+Gansler  <-  Gansler |> 
+  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
-Perez <- Perez |> 
-  mutate(state = str_extract(Contributor.Address, "\\b[A-Z]{2}(?= \\d{5}$)"))
-
-King <- King |> 
-  mutate(state = str_extract(Contributor.Address, "\\b[A-Z]{2}(?= \\d{5}$)"))
-
-Franchot <- Franchot |> 
-  mutate(state = str_extract(Contributor.Address, "\\b[A-Z]{2}(?= \\d{5}$)"))
 
 # Check the unique values again
 unique(Moore$state)
@@ -112,9 +113,14 @@ for (state in states$state_abbrv) {
 for (state in states$state_abbrv) {
   King$state[str_detect(King$`Contributor Address`, state)] <- state
 }
-
 for (state in states$state_abbrv) {
   Franchot$state[str_detect(Franchot$`Contributor Address`, state)] <- state
+}
+for (state in states$state_abbrv) {
+  Schulz$state[str_detect(Schulz$`Contributor Address`, state)] <- state
+}
+for (state in states$state_abbrv) {
+  Gansler$state[str_detect(Gansler$`Contributor Address`, state)] <- state
 }
 
 table(Moore$state)
@@ -192,43 +198,23 @@ as the story states.
 ```{r}
 # Put code to reverse engineer sentence here
 names(Moore)
+names(Perez)
 
-Moore <- Moore |> 
-  mutate(state = str_trim(state)) #to get rid of the spaces because it was giving me trouble
-
-Moore_outofstate <- Moore |> 
-  filter(state != "MD") |>        
-  summarize(total_amount = sum(Contribution.Amount, na.rm = TRUE))
-Moore_outofstate
 #$2,386,593
 Moore |> 
-  
   filter(state != " MD") |> # space is important cause thats how I coded the states
   summarise(
     M_total = sum(`Contribution Amount`)
   )
-#issue when i use space state i get a bigger number like too big and contribution amount does work rn
-
-Moore |> 
-  filter(state != "MD") |> 
-  summarise(M_total = sum(`Contribution.Amount`, na.rm = TRUE))
-#2398716
-
-
-
-
-
-Perez_outofstate <- Perez |> 
-  filter(state != "MD") |>          
-  summarize(total_amount = sum(Contribution.Amount, na.rm = TRUE))
-Perez_outofstate
-#$1,695,893
+#2417799	
 
 Perez |> 
   filter(state != " MD") |> 
   summarise(
     P_total = sum(`Contribution Amount`)
   )
+# 1,697,893
+
 # Display results of code below this codeblock
 
 ```
@@ -249,17 +235,14 @@ Kingtotalfunding
 #$2,199,015
 
 King |> 
-  filter(state == "MD") |> 
+  filter( state == " MD" | state == " NY") |> 
   group_by(state) |> 
-  summarise(
-    total = sum(Contribution.Amount)
-  ) |> 
-  arrange(desc(total))
-#$238,092
-
-238092/2199015
-#0.1082721
-
+    summarise(
+    K_total = sum(`Contribution Amount`)
+  )
+# MD donations: $238339; NY donations: $534,478
+238339/2199015 
+#0.1083844
 # Display results of code below this codeblock
 
 ```
@@ -278,18 +261,14 @@ Franchottotalfunding <- Franchot |>
 Franchottotalfunding
 #total funding $1,663,516
 
-Franchot |> 
-  filter(state == "MD") |> 
-  group_by(state) |> 
-  summarise(
-    total = sum(Contribution.Amount)
-  ) |> 
-  arrange(desc(total))
-# Maryland funds $1,104,710
 
-1104710/1663516	
-#0.6640814
-#potential problem with replication Im finding here that around 66% of Franchot's funds came from Maryland compared to what the article said which was 78%
+Franchot |> 
+  filter( state == " MD") |> 
+  summarise(total = sum(`Contribution Amount`))
+# MD contributions: 1,304,121
+1304121/1663516
+# 78%
+
 
 # Display results of code below this codeblock
 
@@ -321,6 +300,17 @@ Perez |>
 
 736344.4	/2458688	
 #0.2994867 checks out less than a third from maryland
+
+
+Perez |> 
+  filter(state == " MD") |> 
+  summarise(
+    total = sum(`Contribution Amount`)
+  )
+# $760,794.4 from MD
+760794/2458688
+#30.9% come from MD
+
 
 # Display results of code below this codeblock
 
