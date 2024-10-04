@@ -41,20 +41,6 @@ Moore <- read_csv("data/Moore_ContributionsList.csv")
 Perez <- read_csv("data/Perez_ContributionsList.csv")
 King <- read_csv("data/King_ContributionsList.csv")
 Franchot <- read_csv("data/Franchot_ContributionsList.csv")
-Schulz <- read_csv("data/Schulz_ContributionsList.csv")
-Gansler <- read_csv("data/Gansler_ContributionsList.csv")
-glimpse(Moore)
-#`Contribution Amount` 
-glimpse(Perez)
-#`Contribution Amount`
-glimpse(King)
-#`Contribution Amount`
-glimpse(Franchot)
-#`Contribution Amount`
-glimpse(Schulz)
-#`Contribution Amount`
-glimpse(Gansler)
-#`Contribution Amount`
 
 # Path to data should be loaded from folder "data" i.e. read_csv("data/name_of_data.csv")
 
@@ -74,20 +60,6 @@ King  <-  King |>
 
 Franchot  <-  Franchot |> 
   mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
-
-Schulz  <-  Schulz |> 
-  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
-
-Gansler  <-  Gansler |> 
-  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
-
-
-# Check the unique values again
-unique(Moore$state)
-unique(Perez$state)
-unique(King$state)
-unique(Franchot$state)
-
 
 
 #more trying to fix states (thanks sonia<3)
@@ -116,17 +88,6 @@ for (state in states$state_abbrv) {
 for (state in states$state_abbrv) {
   Franchot$state[str_detect(Franchot$`Contributor Address`, state)] <- state
 }
-for (state in states$state_abbrv) {
-  Schulz$state[str_detect(Schulz$`Contributor Address`, state)] <- state
-}
-for (state in states$state_abbrv) {
-  Gansler$state[str_detect(Gansler$`Contributor Address`, state)] <- state
-}
-
-table(Moore$state)
-table(Perez$state)
-table(King$state)
-table(Franchot$state)
 
 ```
 
