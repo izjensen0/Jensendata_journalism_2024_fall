@@ -49,17 +49,17 @@ Franchot <- read_csv("data/Franchot_ContributionsList.csv")
 # To do this, I am going to employ the following function.
 ?str_sub_all()
 # all states are right before the zip code (-6 ch), and only have two letters (start at -8)
-Moore  <-  Moore |> 
-  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
+#Moore  <-  Moore |> 
+ # mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
-Perez  <-  Perez |> 
-  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
+#Perez  <-  Perez |> 
+ # mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
-King  <-  King |> 
-  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
+#King  <-  King |> 
+ # mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
-Franchot  <-  Franchot |> 
-  mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
+#Franchot  <-  Franchot |> 
+ # mutate(state = str_sub(`Contributor Address`, start=-8, end=-7))
 
 
 #more trying to fix states (thanks sonia<3)
@@ -167,7 +167,7 @@ Moore |>
   summarise(
     M_total = sum(`Contribution Amount`)
   )
-#2417799	
+#2,417,799	
 
 Perez |> 
   filter(state != " MD") |> 
@@ -212,7 +212,10 @@ King |>
 
 * **Sentence text**:Moore, King and Perez stand in stark contrast to Peter Franchot, a former Maryland state delegate and current comptroller, who raised over 78% of his $1.66 million from inside Maryland.
 
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Analysis summary**:  This is confirmed, as Franchot raised $\$1,304,121$ of 
+his total $\$1,663,516$ contributions from Maryland. This comes out to 78% of 
+total contributions from Maryland. Unsure why they used the language for "over 
+78%" when it comes out to 78.4% according to this data and how it is coded here. 
 
 ```{r}
 # Put code to reverse engineer sentence here
@@ -239,8 +242,9 @@ Franchot |>
 
 * **Sentence text**: “Less than a third of the money Perez raised, 31%, came from Maryland donors.”
 
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
-
+* **Analysis summary**:  Perez raised a total of $\$2,458,688$, with $\$760,794.4$
+coming from MD. This comes out to 31% of his donations coming from Maryland donors,
+and aligns with the story.  
 ```{r}
 # Put code to reverse engineer sentence here
 
@@ -248,19 +252,6 @@ Pereztotalfunding <- Perez |>
   summarize(total_amount = sum(Contribution.Amount, na.rm = TRUE))
 Pereztotalfunding
 #total funding perez $2,458,688	
-
-
-Perez |> 
-  filter(state == "MD") |> 
-  group_by(state) |> 
-  summarise(
-    total = sum(Contribution.Amount)
-  ) |> 
-  arrange(desc(total))
-#funding from maryland 736,344.4	
-
-736344.4	/2458688	
-#0.2994867 checks out less than a third from maryland
 
 
 Perez |> 
