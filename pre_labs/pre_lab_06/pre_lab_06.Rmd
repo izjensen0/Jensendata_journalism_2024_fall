@@ -97,7 +97,7 @@ You can now export that extracted table to a CSV file using the "Export" button.
 
 ### Task 5: Export the CSV file
 
-**Task** Export the CSV file to your pre_lab_06 folder and read it into R by running the following codeblock. What problems do you see with the data? **Answer**
+**Task** Export the CSV file to your pre_lab_06 folder and read it into R by running the following codeblock. What problems do you see with the data? **Answer** There are no helpful column names so everything seems grouped together under different NA columns. There are also these ...1 and ...2 and so one that might be column headers but are not helpful. 
 
 ```{r}
 benzie_2024 <- read_csv("tabula-Benzie Aug 6,2024 Official Precinct Results.csv")
@@ -113,7 +113,7 @@ Then we've got rows with NAs, plus office names mixed up with candidate names. L
 
 ### Task 6: Cleaning up & getting rid of rows we don't need
 
-**Task** Get rid of rows we don't need by running the codeblock below. What problems remain? **Answer**
+**Task** Get rid of rows we don't need by running the codeblock below. What problems remain? **Answer** Now there is a candidate column that includes the candidate and their party. Other than that the columns are all just X and a number which isn't helpful for determining what they are. 
 
 ```{r}
 benzie_2024 <- read_csv("tabula-Benzie Aug 6,2024 Official Precinct Results.csv", col_names = FALSE)
@@ -129,7 +129,7 @@ Ok, now we have numbers and candidates, but we still need better headers and a w
 
 ### Task 7: Making a party column, changing headers and adding an office column.
 
-**Task** Run the codeblock below. What changed, and what issues or problems remain? **Answer**
+**Task** Run the codeblock below. What changed, and what issues or problems remain? **Answer** The last answer just had a candidate column then a bunch of X columns. This one now has office, candidate, party, and then some Almira and Benzonia columns with letters after them. After that there are still a lot of X columns. Issues remain with the column titles in that other than office, candidate, and party they don't mean anything to me. 
 
 ```{r}
 benzie_2024 <- benzie_2024 |>
