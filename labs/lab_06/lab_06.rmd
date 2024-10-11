@@ -1,0 +1,739 @@
+---
+title: "lab_06"
+author: "derek willis"
+date: "2024-10-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## You will need
+
+-   Tabula
+
+## Load libraries and establish settings
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load the tidyverse and any other libraries you'll need
+library("tidyverse")
+library("dplyr")
+library("tidyr")
+
+```
+
+## Get Our PDF
+
+We'll be working with the [Maryland monthly voter registration update](https://elections.maryland.gov/pdf/vrar/2024_09.pdf) from the State Board of Elections. You'll want to download it to a place you'll remember (like your Downloads folder, or the labs folder in your repository). The goal is to write a couple of paragraphs that summarize the changes in voter registration in Maryland during the month of September.
+
+## Setup Tabula
+
+Start Tabula, then go to <http://127.0.0.1:8080/> in your browser. Click the "Browse" button and find the PDF file and click "open", and then click the "Import button" in Tabula. This will take a few seconds.
+
+This PDF has multiple possible tables to extract. We're going to make four dataframes: 
+
+* new registrations by party
+* removals by party
+* changes in registration
+* current registrations by county.
+
+You will need to draw boxes around four sections and export four CSV files that you will load into R. In Tabula, draw a box around the borders of those tables and click the "Preview & Export Extracted Data" button for each one. The export should look pretty clean, but might be missing some column headers. You'll need to include total columns.
+
+Export each CSV (each one should be called `tabula-2024-09.csv` by default, so you should rename them for clarity) to your lab_06/data folder.
+
+From there, you will need to read in and clean up the data, and in particular the headers. You can choose to include the headers from the PDF in your exported CSV files OR to exclude them and add them when importing. The pre_lab has an example of how to do this!
+
+## Load and clean up the data in R
+
+You will need to read in and clean up the data so that it can be used for analysis. By "clean" I mean the column headers must not contain spaces and they should have meaningful names, not "x1" or something similar. The current registrations dataframe *MUST* include the county name, but should not include the columns under `Changes` and `Party Affiliation From`. How you do that is up to you (and could involve something outside R), but you can use `select()` with or without the minus sign to include or exclude certain columns. You also can use the `rename` function to, well, rename columns.
+
+```{r}
+# Party registrations
+partyreg <- read_csv("data/newregistrationsparty.tabula.csv", col_names = FALSE)
+
+partyreg <- partyreg |>
+  filter(!is.na(X2)) |> 
+  rename(Democrats = X2)
+
+partyreg <- partyreg |>
+  filter(!is.na(X3)) |> 
+  rename(Republicans = X3)
+
+partyreg <- partyreg |>
+  filter(!is.na(X5)) |> 
+  rename(Total = X5)
+
+partyreg <- partyreg |>
+  filter(!is.na(X6)) |> 
+  rename(Duplicates = X6) 
+
+partyreg <- partyreg %>% separate(X4, into = paste0("Y", 1:5), sep = "\\s+")
+
+partyreg <- partyreg |>
+  filter(!is.na(Y1)) |> 
+  rename(No_Label_Movement = Y1) 
+
+partyreg <- partyreg |>
+  filter(!is.na(Y2)) |> 
+  rename(Libertarian_Party = Y2) 
+
+partyreg <- partyreg |>
+  filter(!is.na(Y3)) |> 
+  rename(Green_Party = Y3) 
+
+partyreg <- partyreg |>
+  filter(!is.na(Y4)) |> 
+  rename(Unaffiliated = Y4) 
+
+partyreg <- partyreg |>
+  filter(!is.na(Y5)) |> 
+  rename(Other = Y5) 
+
+
+partyreg <- partyreg |>
+  filter(!is.na(X1)) |> 
+  rename(Registration_Method = X1)  
+
+
+partyreg
+
+
+```
+
+```{r}
+# Removals
+removals <- read_csv("data/removalsbyparty.tabula.csv", col_names = FALSE)
+
+removals <- removals %>% separate(X3, into = paste0("Y", 1:2), sep = "\\s+")
+
+removals <- removals |>
+  filter(!is.na(X2)) |> 
+  rename(Democrat = X2)
+
+removals <- removals |>
+  filter(!is.na(Y1)) |> 
+  rename(Republican = Y1)
+
+removals <- removals |>
+  filter(!is.na(Y2)) |> 
+  rename(No_Label_Movement = Y2)
+
+removals <- removals |>
+  filter(!is.na(X4)) |> 
+  rename(Libertarian_Party = X4)
+
+removals <- removals |>
+  filter(!is.na(X5)) |> 
+  rename(Green_Party = X5)
+
+removals <- removals |>
+  filter(!is.na(X6)) |> 
+  rename(Unaffiliated = X6)
+
+removals <- removals |>
+  filter(!is.na(X7)) |> 
+  rename(Other = X7)
+
+removals <- removals |>
+  filter(!is.na(X8)) |> 
+  rename(Total = X8)
+
+
+removals <- removals |>
+  filter(!is.na(X1)) |> 
+  rename(Reason_for_removal = X1)
+
+removals
+
+```
+
+```{r}
+# Changes
+changes <- read_csv("data/changesinregistration.tabula.csv", col_names = FALSE)
+
+changes <- changes |>
+  filter(!is.na(X2)) |> 
+  rename(Address = X2)
+
+changes <- changes |>
+  filter(!is.na(X3)) |> 
+  rename(Name = X3)
+
+changes <- changes |>
+  filter(!is.na(X1)) |> 
+  rename(County = X1)
+changes
+
+
+
+```
+
+```{r}
+# Current registrations
+currentreg <- read_csv("data/currentregistrationsbycounty.tabula.csv", col_names = FALSE)
+
+currentreg <- currentreg %>% select(-X2, -X3, -X4, -X5, -X6)
+
+currentreg <- currentreg %>% separate(X9, into = paste0("Y", 1:4), sep = "\\s+")
+currentreg <- currentreg %>% separate(X10, into = paste0("Z", 1:3), sep = "\\s+")
+currentreg
+
+
+currentreg <- currentreg |>
+  filter(!is.na(X7)) |> 
+  rename(Democrat = X7)
+
+currentreg <- currentreg |>
+  filter(!is.na(X8)) |> 
+  rename(Republican = X8)
+
+currentreg <- currentreg |>
+  filter(!is.na(Y1)) |> 
+  rename(No_Label_Movement = Y1)
+
+
+currentreg <- currentreg |>
+  filter(!is.na(Y2)) |> 
+  rename(Libertarian_Party = Y2)
+
+
+currentreg <- currentreg |>
+  filter(!is.na(Y3)) |> 
+  rename(Green_Party = Y3)
+
+currentreg <- currentreg |>
+  filter(!is.na(Y4)) |> 
+  rename(Unaffiliated = Y4)
+
+currentreg <- currentreg |>
+  filter(!is.na(Z1)) |> 
+  rename(Other = Z1)
+
+currentreg <- currentreg |>
+  filter(!is.na(Z2)) |> 
+  rename(Total = Z2)
+
+currentreg <- currentreg %>% select(-Z3, -X11)
+
+currentreg <- currentreg |>
+  filter(!is.na(X1)) |> 
+  rename(County = X1)
+
+currentreg
+```
+
+## Rinse, Repeat: September 2022 data
+
+Do all of that again, for the [September 2022 voter registration update](https://elections.maryland.gov/pdf/vrar/2022_09.pdf), so we can compare the two. If you've done well, this is easy: just do the same steps in Tabula, export the files and use the same code to read in and clean up the data, *just remember to give these dataframes different names* so that you can compare September 2024 to September 2022.
+
+To answer the following questions, you'll need to calculate percentages and do other calculations. Whether you do that by combining or joining dataframes or you write code to run separately on both is up to you.
+
+```{r}
+# Party registrations
+registrations2022 <- read_csv("data/2022newregistrations.csv", col_names = FALSE)
+registrations2022
+registrations2022 <- registrations2022 |>
+  filter(!is.na(X2)) |> 
+  rename(Democrats = X2)
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(X3)) |> 
+  rename(Republicans = X3)
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(X5)) |> 
+  rename(Total = X5)
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(X6)) |> 
+  rename(Duplicates = X6) 
+
+registrations2022 <- registrations2022 %>% separate(X4, into = paste0("Y", 1:5), sep = "\\s+")
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(Y1)) |> 
+  rename(No_Label_Movement = Y1) 
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(Y2)) |> 
+  rename(Libertarian_Party = Y2) 
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(Y3)) |> 
+  rename(Green_Party = Y3) 
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(Y4)) |> 
+  rename(Unaffiliated = Y4) 
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(Y5)) |> 
+  rename(Other = Y5) 
+
+
+registrations2022 <- registrations2022 |>
+  filter(!is.na(X1)) |> 
+  rename(Registration_Method = X1)  
+
+
+registrations2022
+
+```
+
+```{r}
+# Removals
+removals2022 <- read_csv("data/2022removals.csv", col_names = FALSE)
+
+removals2022 <- removals2022 %>% separate(X3, into = paste0("Y", 1:2), sep = "\\s+")
+
+removals2022 <- removals2022 |>
+  filter(!is.na(X2)) |> 
+  rename(Democrat = X2)
+
+removals2022 <- removals2022 |>
+  filter(!is.na(Y1)) |> 
+  rename(Republican = Y1)
+
+removals2022 <- removals2022 |>
+  filter(!is.na(Y2)) |> 
+  rename(No_Label_Movement = Y2)
+
+removals2022 <- removals2022 |>
+  filter(!is.na(X4)) |> 
+  rename(Libertarian_Party = X4)
+
+removals2022 <- removals2022 |>
+  filter(!is.na(X5)) |> 
+  rename(Green_Party = X5)
+
+removals2022 <- removals2022 |>
+  filter(!is.na(X6)) |> 
+  rename(Unaffiliated = X6)
+
+removals2022 <- removals2022 |>
+  filter(!is.na(X7)) |> 
+  rename(Other = X7)
+
+removals2022 <- removals2022 |>
+  filter(!is.na(X8)) |> 
+  rename(Total = X8)
+
+
+removals2022 <- removals2022 |>
+  filter(!is.na(X1)) |> 
+  rename(Reason_for_removal = X1)
+
+removals2022
+
+```
+
+```{r}
+# Changes
+
+changes2022 <- read_csv("data/2022changes.csv", col_names = FALSE)
+changes2022
+changes2022 <- changes2022 %>% separate(X2, into = paste0("X", 2:3), sep = "\\s+")
+
+changes2022 <- changes2022 |>
+  filter(!is.na(X2)) |> 
+  rename(Address = X2)
+
+changes2022 <- changes2022 |>
+  filter(!is.na(X3)) |> 
+  rename(Name = X3)
+
+changes2022 <- changes2022 |>
+  filter(!is.na(X1)) |> 
+  rename(County = X1)
+changes2022
+
+```
+
+```{r}
+# Current registrations
+
+currentreg2022 <- read_csv("data/2022currentreg.csv", col_names = FALSE)
+
+currentreg2022 <- currentreg2022 %>% select(-X2, -X3, -X4, -X5, -X6, -X7)
+currentreg2022
+currentreg2022 <- currentreg2022 %>% separate(X10, into = paste0("Y", 1:4), sep = "\\s+")
+
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(X8)) |> 
+  rename(Democrat = X8)
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(X9)) |> 
+  rename(Republican = X9)
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(Y1)) |> 
+  rename(Green_Party = Y1)
+
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(Y2)) |> 
+  rename(Libertarian_Party = Y2)
+
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(Y3)) |> 
+  rename(Working_Class_Party = Y3)
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(Y4)) |> 
+  rename(Unaffiliated = Y4)
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(X11)) |> 
+  rename(Other = X11)
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(X12)) |> 
+  rename(Total = X12)
+
+
+currentreg2022 <- currentreg2022 |>
+  filter(!is.na(X1)) |> 
+  rename(County = X1)
+
+currentreg2022
+
+
+```
+
+## Answer questions
+
+Q1. Calculate the percentage of registered Democrats, Republicans and unaffiliated voters for the entire state in September 2024 and September 2022, and then calculate the percentage change for those three party categories (the formula for percentage change is easy to remember: (New-Old)/Old). How would you describe the changes in these partisan categories in a story? What's the most interesting thing about these changes that would be the lede of that story?
+
+A1. In 2024, Maryland has 26% Democrats, 12% Republicans, and 11% Unaffiliated. In 2022, Maryland had 27% Democrats, 12% Republicans, and 10% Unaffiliated. From 2022 to 2024 Democrats decreased by 3 percentage points. Republicans decreased by 0.6 percentage points. Unaffiliated voters increased by about 8%. It is interesting that there are less Democrats than there used to by a fair margin. This could be due to people moving out or dissatisfaction with the party. The decrease in Republicans is pretty small making it feel less imported. Unaffiliated voters increased which could be due to annoyance with parties in general but I think it's probably because more people are getting automatically registered through places such as the DMV that do not register you with a party. I think the big stories here are losses for democrats and more unaffiliated voters. Where are the democrats going? I kind of doubt they are unregistering with the party but it could happen. 
+
+```{r}
+
+currentreg
+currentreg$Democrat <- as.numeric(currentreg$Democrat)
+currentdems2024 <- sum(currentreg$Democrat, na.rm = TRUE)
+currentdems2024
+
+currentreg$Republican <- as.numeric(currentreg$Republican)
+currentrep2024 <- sum(currentreg$Republican, na.rm = TRUE)
+currentrep2024
+
+currentreg$Unaffiliated <- as.numeric(currentreg$Unaffiliated)
+currentuna2024 <- sum(currentreg$Unaffiliated, na.rm = TRUE)
+currentuna2024
+
+currentreg$Total <- gsub(",", "", currentreg$Total)
+currentreg$Total <- as.numeric(currentreg$Total)
+currenttotal2024 <- sum(currentreg$Total, na.rm = TRUE)
+currenttotal2024
+currentreg$Total
+
+currentdems2024/currenttotal2024
+#dems 0.2622555 
+
+currentrep2024/currenttotal2024
+#rep 0.1192658
+
+currentuna2024/currenttotal2024
+#una 0.109175
+
+
+currentreg2022
+currentreg2022$Democrat <- as.numeric(currentreg2022$Democrat)
+currentdems2022 <- sum(currentreg2022$Democrat, na.rm = TRUE)
+currentdems2022
+
+currentreg2022$Republican <- as.numeric(currentreg2022$Republican)
+currentrep2022 <- sum(currentreg2022$Republican, na.rm = TRUE)
+currentrep2022
+
+currentreg2022$Unaffiliated <- as.numeric(currentreg2022$Unaffiliated)
+currentuna2022 <- sum(currentreg2022$Unaffiliated, na.rm = TRUE)
+currentuna2022
+
+currentreg2022$Total <- gsub(",", "", currentreg2022$Total)
+currentreg2022$Total <- as.numeric(currentreg2022$Total)
+currenttotal2022 <- sum(currentreg2022$Total, na.rm = TRUE)
+currenttotal2022
+
+currentdems2022/currenttotal2022
+#dems 0.2704418
+
+currentrep2022/currenttotal2022
+#rep 0.1200135
+
+currentuna2022/currenttotal2022
+#una 0.1011108
+
+#change
+
+
+#dems
+(0.2622555-0.2704418)/0.2704418
+#dems -0.0302701
+
+#reps
+(0.1192658-0.1200135)/0.1200135
+#rep -0.006230132
+
+#una
+(0.109175-0.1011108)/0.1011108
+# una 0.07975607
+
+```
+
+Q2. Among the Maryland jurisdictions with the most registered voters, which one had the biggest percentage increase in unaffiliated voters between 2022 and 2024? How did that county vote for governor in 2022 and for president in 2020? Contrast the partisan percentages of that county with the county that had the eighth-largest percentage increase in unaffiliated voters. You should display information from the data that shows the counties with the largest percentage increase first.
+
+A2. Prince George's county had the largest increase in Unaffiliated voters with a 15.2 percentage point increase. In 2022 Prince George's county voted for the Democrat Wes More and Biden in 2020. The County with the eighth largest percentage increase in unaffiliated voters, Howard County, is much more Republican and less Democratic than Prince George's County. 
+
+```{r}
+currentreg
+currentreg$UNApercent<- (currentreg$Unaffiliated/currentreg$Total)
+currentreg2022$UNApercent<- (currentreg2022$Unaffiliated/currentreg2022$Total)
+currentreg$dempercent2024<- (currentreg$Democrat/currentreg$Total)
+currentreg2022$dempercent2022<- (currentreg2022$Democrat/currentreg2022$Total)
+currentreg$reppercent2024<- (currentreg$Republican/currentreg$Total)
+currentreg2022$reppercent2022<- (currentreg2022$Republican/currentreg2022$Total)
+
+currentreg |> 
+  group_by(County) |> 
+  arrange(desc(UNApercent)) |>
+  select(County, UNApercent)
+
+
+currentreg2022 |> 
+  group_by(County) |> 
+  arrange(desc(UNApercent)) |>
+  select(County, UNApercent)
+
+
+currentreg2022 <- currentreg2022 %>% rename(UNApercent_2022 = UNApercent)
+currentreg <- currentreg %>% rename(UNApercent_2024 = UNApercent)
+
+# Join the two datasets by 'County'
+combined_UNApercent <- currentreg2022 %>%
+  inner_join(currentreg, by = "County")
+
+# Calculate the difference and percentage increase
+combined_UNApercent <- combined_UNApercent %>%
+  mutate(
+    Difference = UNApercent_2024 - UNApercent_2022, 
+    UNAPercentage_Increase = (UNApercent_2024 - UNApercent_2022) / UNApercent_2022
+  )
+
+
+
+combined_UNApercent
+
+combined_UNApercent |> 
+  group_by(County) |> 
+  arrange(desc(UNAPercentage_Increase)) |>
+  select(County, UNAPercentage_Increase, UNApercent_2022, UNApercent_2024,  Difference )
+
+currentreg2022$County
+
+combined_UNApercent |> 
+ filter(County == "PR. GEORGE'S" | County == "HOWARD") |> 
+  group_by(County) |> 
+  arrange(desc(UNAPercentage_Increase)) |>
+  select(County, UNAPercentage_Increase, dempercent2022,dempercent2024 , reppercent2022, reppercent2024 , UNApercent_2022,UNApercent_2024 )
+
+```
+
+Q3. Do the party percentages of new registrants (% Dem, % Rep, % Unaffiliated) from September 2024 and September 2022 match the overall percentage of partisan registration in the state at those times?
+
+In other words, did new registrants mirror the overall partisan composition of the electorate, or were they different? Do any of the methods of registration vary significantly from the overall partisan pattern? Which method is worthy of further exploration?
+
+A3. Newly registered people were slighly different than those active during the same year and largely reflect the move away from the democratic party and toward unaffiliated party like the progression shown earlier from 2022 to 2024. Democrats had slighly less newly registered voters than active voters. Republicans had less newly registered voters than active voters. Unaffiliated status had consistently a higher percentage of new voters than active voters. The newly registered voters reflect the changes in that democrats and republicans see decreases in party and unaffiliated is increasing. 
+For some methods there were very few people making pattern recognition difficult to trust. That being said Provisional ballots are entirely cast by Democrats. It is similar with same day registration. Absentee voting, voting by mail, and disabled registration are also highly democratic. State agencies and the DMV registered many more unaffiliated voters than other methods. Voting in person is the most republican. There are some of these that require further investigation because it is unclear what they are such as volunteer, eric report, or other means. Eric report in partiularly registered a lot of voters. I think the investigation of state agencies and registering unaffiliated voters is interesting. Do these state agencies give the option to register with a party or is it automatically unaffiliated?
+
+```{r}
+
+#dems percentage 2022 0.2704418
+#new reg dems 2022 0.2581931
+
+#rep percentage 2022 0.1200135
+#new reg reps 2022 0.07523323
+
+#una percentage 2022 0.1011108
+#new reg una 2022 0.1530048
+
+#dems percentage2024 0.2622555 
+#new reg dems 2024 0.2492748
+
+#rep percentage2024 0.1192658
+#new reg reps 2024 0.09116686
+
+#una percentage2024 0.109175
+#new reg una 2024 0.1434078
+
+partyreg
+registrations2022
+
+partyreg
+partyreg$Democrats <- as.numeric(partyreg$Democrats)
+newdems2024 <- sum(partyreg$Democrats, na.rm = TRUE)
+newdems2024
+
+partyreg$Republicans <- as.numeric(partyreg$Republicans)
+newreps2024 <- sum(partyreg$Republicans, na.rm = TRUE)
+newreps2024
+
+partyreg$Unaffiliated <- as.numeric(partyreg$Unaffiliated)
+newuna2024 <- sum(partyreg$Unaffiliated, na.rm = TRUE)
+newuna2024
+
+partyreg$Total <- gsub(",", "", partyreg$Total)
+partyreg$Total <- as.numeric(partyreg$Total)
+newtotal2024 <- sum(partyreg$Total, na.rm = TRUE)
+newtotal2024
+
+registrations2022$Democrats <- as.numeric(registrations2022$Democrats)
+newdems2022 <- sum(registrations2022$Democrats, na.rm = TRUE)
+newdems2022
+
+registrations2022$Republicans <- as.numeric(registrations2022$Republicans)
+newreps2022 <- sum(registrations2022$Republicans, na.rm = TRUE)
+newreps2022
+
+registrations2022$Unaffiliated <- as.numeric(registrations2022$Unaffiliated)
+newuna2022 <- sum(registrations2022$Unaffiliated, na.rm = TRUE)
+newuna2022
+
+registrations2022$Total <- gsub(",", "", registrations2022$Total)
+registrations2022$Total <- as.numeric(registrations2022$Total)
+newtotal2022 <- sum(registrations2022$Total, na.rm = TRUE)
+newtotal2022
+registrations2022$Total
+
+
+newdems2022/newtotal2022
+#dems percentage 2022 0.2581931
+newreps2022/newtotal2022
+#reps percentage 2022 0.07523323
+newuna2022/newtotal2022
+#Una percentage 2022 0.1530048
+
+
+newdems2024/newtotal2024
+#dems percentage 2024 0.2492748
+newreps2024/newtotal2024
+#reps percentage 2024 0.09116686
+newuna2024/newtotal2024
+#Una percentage 2024 0.1434078
+
+
+registrations2022$DemPercentage<- registrations2022$Democrats/registrations2022$Total
+registrations2022$RepPercentage<- registrations2022$Republicans/registrations2022$Total
+registrations2022$UnaPercentage<- registrations2022$Unaffiliated/registrations2022$Total
+
+partyreg$DemPercentage<- partyreg$Democrats/partyreg$Total
+partyreg$RepPercentage<- partyreg$Republicans/partyreg$Total
+partyreg$UnaPercentage<- partyreg$Unaffiliated/partyreg$Total
+
+registrations2022
+registrations2022 |> 
+  group_by(Registration_Method) |> 
+  arrange(desc(DemPercentage)) |>
+  select(Registration_Method, DemPercentage, RepPercentage, UnaPercentage )
+
+
+partyreg |> 
+  group_by(Registration_Method) |> 
+  arrange(desc(DemPercentage)) |>
+  select(Registration_Method, DemPercentage, RepPercentage, UnaPercentage )
+```
+
+Q4. Choose your own adventure! Using both the 2024 and 2022 data for one of the dataframes (changes, removals or new registrations), ask and answer a question that makes at least one comparison and requires code to answer. That could involve calculating a percentage, percentage change or the raw difference between two columns.
+
+A4. Since we didn't look much at removals, I want to see which parties have the largest percentage of removals. Are they similar to registration rates? Democrats make up the largest percentage of people removed from the voter rolls at around 57%. Republicans makeup 19% of those removed and Unaffiliated make up around 2%. This makes sense with what we have learned earlier. Unaffiliated people are increasing in part because there are less being removed and also more being registered. Democrats which are decreasing the most are much more likely to be taken off the voter roll. Part of this is of course that there are more democrats to lose so they were always going to be more likely to be taken of the voter rolls but still democrats make up more than half of those removed. 
+
+```{r}
+
+removals2022
+
+removals2022$Democrat <- gsub(",", "", removals2022$Democrat)
+removals2022$Democrat <- as.numeric(removals2022$Democrat)
+removedem2022 <- sum(removals2022$Democrat, na.rm = TRUE)
+removedem2022
+
+removals2022$Republican <- gsub(",", "", removals2022$Republican)
+removals2022$Republican <- as.numeric(removals2022$Republican)
+removerep2022 <- sum(removals2022$Republican, na.rm = TRUE)
+removerep2022
+
+removals2022$Unaffiliated <- as.numeric(removals2022$Unaffiliated)
+removeuna2022 <- sum(removals2022$Unaffiliated, na.rm = TRUE)
+removeuna2022
+
+removals2022$Total <- gsub(",", "", removals2022$Total)
+removals2022$Total <- as.numeric(removals2022$Total)
+removetotal2022 <- sum(removals2022$Total, na.rm = TRUE)
+removetotal2022
+
+
+removals
+removals$Democrat <- gsub(",", "", removals$Democrat)
+removals$Democrat <- as.numeric(removals$Democrat)
+removedem2024 <- sum(removals$Democrat, na.rm = TRUE)
+removedem2024
+
+
+removals$Republican <- gsub(",", "", removals$Republican)
+removals$Republican <- as.numeric(removals$Republican)
+removerep2024 <- sum(removals$Republican, na.rm = TRUE)
+removerep2024
+
+removals$Unaffiliated <- as.numeric(removals$Unaffiliated)
+removeuna2024 <- sum(removals$Unaffiliated, na.rm = TRUE)
+removeuna2024
+
+removals$Total <- gsub(",", "", removals$Total)
+removals$Total <- as.numeric(removals$Total)
+removetotal2024 <- sum(removals$Total, na.rm = TRUE)
+removetotal2024
+
+
+removedem2022/removetotal2022
+#0.5778056
+removerep2022/removetotal2022
+#0.188978
+removeuna2022/removetotal2022
+#0.01685872
+
+removedem2024/removetotal2024
+#0.5798707
+removerep2024/removetotal2024
+#0.1917734
+removeuna2024/removetotal2024
+#0.02323075
+
+
+#dems percentage 2022 0.2704418
+#new reg dems 2022 0.2581931
+
+#rep percentage 2022 0.1200135
+#new reg reps 2022 0.07523323
+
+#una percentage 2022 0.1011108
+#new reg una 2022 0.1530048
+
+#dems percentage2024 0.2622555 
+#new reg dems 2024 0.2492748
+
+#rep percentage2024 0.1192658
+#new reg reps 2024 0.09116686
+
+#una percentage2024 0.109175
+#new reg una 2024 0.1434078
+```
+
+Q5. What's the best story idea or question you've seen as a result of the work you've done in this lab?
+
+A5. For my own personal work, I am interested in how people register through social security and disability. Why do they register that way. Is this something that exists in other states? I think broadly a good story might be that unaffiliated voters are highly registered which can create issues for primary turnout. Can the DMV try to get people to register with a party? This has already been covered by other articles but an interesting story is that republicans prefer in person registration and voting. 
