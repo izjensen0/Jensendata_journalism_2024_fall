@@ -157,9 +157,9 @@ md |>
 
 As you can see, some of the error bars are quite wide. Some are narrow. But if the bars overlap, it means the difference between the two counties is within the margin of error, and the differences aren't statistically significant.
 
-Is the difference between Calvert and Montgomery significant? **Answer**
+Is the difference between Calvert and Montgomery significant? **Answer** No, not significant.
 
-Is the difference between Howard and everyone else significant? **Answer**
+Is the difference between Howard and everyone else significant? **Answer** Yes, it is significant.
 
 ### Task 7: Joining Multiple Years Together
 
@@ -183,7 +183,7 @@ md10 <- get_acs(geography = "county",
 
 What we're going to do next is a lot, but each step is simple. We're going to join the data together, so each county has one line of data. Then we're going to rename some fields that repeat. Then we're going to calculate the minimum and maximum value of the estimate using the margin of error. That'll help us later. After that, we're going to calculate a percent change and sort it by that change.
 
-**Task** Run the following codeblock to join the data, rename the population estimates and then calculate the values we need. Notice how we select *after* we do the initial calculations so we only see the columns we're interested in (and drop the ones we don't want to see). Also note how the select function has the minus sign (-) in front of some columns? That means we don't want to see them in our result. Did any counties see their median incomes fall from 2010-2020? Is the change outside the margin of error for both? **Answer**
+**Task** Run the following codeblock to join the data, rename the population estimates and then calculate the values we need. Notice how we select *after* we do the initial calculations so we only see the columns we're interested in (and drop the ones we don't want to see). Also note how the select function has the minus sign (-) in front of some columns? That means we don't want to see them in our result. Did any counties see their median incomes fall from 2010-2020? Is the change outside the margin of error for both? **Answer** Based on the estimate variables no counties had income falls. Median income for all counties increased from 2010 to 2020. 
 
 ```{r}
 md10 |>
@@ -195,6 +195,8 @@ md10 |>
   select(-variable.x, -variable.y, -moe.x, -moe.y) |>
   mutate(change = ((estimate2022-estimate2010)/estimate2010)*100) |>
   arrange(change)
+
+
 ```
 
 ### Task 8: Combine with Election Data
@@ -225,12 +227,19 @@ Note that the year is 2019, which is the latest year that we have data from ever
 
 Of the 20 zip codes with the largest amounts, which ones have estimated median household incomes of less than \$50,000?
 
-**Answer**
+**Answer** None of them. 
 
 ```{r}
+
 md_zipcodes <- get_acs(geography="zcta", variables = "B19013_001", state='MD', year=2019)
 md_zips_with_acs <- top_zips |> left_join(md_zipcodes, join_by(zip5==GEOID))
 md_zips_with_acs <- md_zips_with_acs |> mutate(min=(estimate-moe), max=(estimate+moe))
+
+md_zips_with_acs
+
+md_zips_with_acs |>
+ group_by(zip5) |>
+ arrange(desc(estimate))
 ```
 
 **Task** Arrange md_zips_with_acs by estimate showing the highest median household income first. What questions do you have about these top zip codes? **Answer**
