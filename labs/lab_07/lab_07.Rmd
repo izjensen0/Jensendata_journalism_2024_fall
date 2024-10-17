@@ -1,7 +1,7 @@
 ---
 title: "lab_07"
-author: "derek willis"
-date: "2024-08-07"
+author: "Isabelle Jensen"
+date: "2024-10-17"
 output: html_document
 ---
 
@@ -192,7 +192,7 @@ sum(splitdemgov$count)
 
 **Q5** Let's find out more about those zip codes from A4. Using tidycensus, get a dataframe of Maryland zip codes and their median ages, then join it to the dataframe you produced in A4. NOTE: you'll need to ensure that the two columns you use for the join are the same datatype. Summarize your findings; how would you describe the zip codes with more non-Cox Republicans compared to those with fewer? Where are those leading zip codes located?
 
-**A5**
+**A5** The top counties in nonCox Republicans are 21702 and 21701 which had 115 and 84 of those voters respectively.  21702 is in Fredrick around Yellow Springs and Clover Hill. 21701 is also in Fredrick and includes some of MT Pleasant and Spring Ridge. 21718 and 21780 had the least amount of nonCox republicans with only 3 and 2 of those voters and median ages of 54 and 47. It's worth noting that 21718 is the oldest zipcode. 21718 seems like a smaller zipcode and covers Burkittsville. 21780 is right on the boarder with Pennslyvania and covers Sabillasville. I suspect that the zipcodes with more nonCox republicans are much more populated than those with the least. Although the top few nonCox republican zipcodes are younger and the last few are older this is not super consistent as there are some pretty young zipcodes with few of these voters. 
 
 ```{r}
 
@@ -200,7 +200,24 @@ zipage <- get_acs(geography = "zip code tabulation area",
                     variables = c(medincome = "B01002_001"),
                     year = 2022,
                     survey = "acs5")
-colnames(zipage)
+glimpse(zipage)
+splitdemgov
+
+fredrick <- ballotchoice %>%
+  inner_join(precincts, by = "precinct")
+
+zipage <- zipage %>%
+  mutate(GEOID = as.numeric(GEOID))
+
+zipageandsplitticket <- zipage %>%
+  inner_join(splitdemgov, by = c("GEOID" = "zipcode"))
+zipageandsplitticket
+
+zipageandsplitticket |>
+  select(GEOID, estimate, count)|>
+ group_by(GEOID) |>
+ arrange(desc(count))
+
 
 ```
 
