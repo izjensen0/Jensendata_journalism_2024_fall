@@ -1,7 +1,7 @@
 ---
 title: "pre_lab_07.Rmd"
-author: "derek willis"
-date: "10/18/2022"
+author: "Isabelle Jensen"
+date: "10/17/2024"
 output: html_document
 ---
 
@@ -227,7 +227,7 @@ Note that the year is 2019, which is the latest year that we have data from ever
 
 Of the 20 zip codes with the largest amounts, which ones have estimated median household incomes of less than \$50,000?
 
-**Answer** None of them. 
+**Answer** Only one of the 20 zip codes with the largest totals had an estimated median income of less than 50k, 21202. 
 
 ```{r}
 
@@ -235,11 +235,19 @@ md_zipcodes <- get_acs(geography="zcta", variables = "B19013_001", state='MD', y
 md_zips_with_acs <- top_zips |> left_join(md_zipcodes, join_by(zip5==GEOID))
 md_zips_with_acs <- md_zips_with_acs |> mutate(min=(estimate-moe), max=(estimate+moe))
 
-md_zips_with_acs
+glimpse(md_zips_with_acs)
 
 md_zips_with_acs |>
- group_by(zip5) |>
- arrange(desc(estimate))
+ group_by(zip5) 
+ arrange(desc(total))
+ 
+
 ```
 
-**Task** Arrange md_zips_with_acs by estimate showing the highest median household income first. What questions do you have about these top zip codes? **Answer**
+**Task** Arrange md_zips_with_acs by estimate showing the highest median household income first. What questions do you have about these top zip codes? **Answer**Where are the zipcodes with the highest median incomes? What do the racial demographics of those neighborhoods look like? Are the zipcodes with the highest median income the ones that give the most to campaigns?
+
+```{r}
+md_zips_with_acs |> 
+  arrange(desc(estimate))
+
+```
