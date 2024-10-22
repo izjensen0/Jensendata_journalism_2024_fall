@@ -1,7 +1,7 @@
 ---
 title: "pre_lab_08.Rmd"
-author: "Derek Willis"
-date: "2024-10-16"
+author: "Isabelle Jensen"
+date: "2024-10-21"
 output: html_document
 ---
 
