@@ -35,7 +35,8 @@ HINT: In Datawrapper's "Check and Describe" tab, you can click on a column to ge
 
 What do you think the story here is? Put the answer below along with the URL of your chart.
 
-**A1.**
+**A1.**https://datawrapper.dwcdn.net/vA47P/1/ 
+I think the story here is that mail in voting remains popular despite the fact that most people feel safe going to the polls in 2022. In 2020, mail in voting was a necessity but we use mail in voting much more than we did before the pandemic. 2020 started a normalization of mail in voting. 
 
 ```{r}
 mdvotes <- read_csv("data/md_votes_by_type.csv")
@@ -45,6 +46,11 @@ mdvotes <-mdvotes |>
   mutate(
     EarlyPercentage = (Early/ Total)*100
   )
+
+#percentage variables are already calculated into pct_early, pct_election_day, and pct_mail
+
+write_csv(mdvotes, "data/md_votes_by_type.csv")
+
 ```
 
 **Q2.** You've been assigned to track early-voting turnout in Maryland at the county level. To do that, use [data from the state](https://elections.maryland.gov/press_room/2024_stats/PG24/EarlyVoting%20RAW%20data.csv). YOU DO NOT NEED TO LOAD THIS FILE. I've created several CSV files from it; each has a row for each day, with the counties as columns, so you can track early voting turnout in certain categories. The available files in the data folder are:
@@ -68,9 +74,17 @@ Your chart MUST:
 
 Tell me below why you picked the CSV you did. If you made any changes to the data, put that code below.
 
-**A2.** 
+**A2.** When do young people vote early? They vote early later in the vote early days which makes sense and if I had to guess is likely true of other voters. I think youth voting is interesting because the youth votes less frequently. I didn't make any changes to the data and used a bar graph to show that generally early youth voters show up in higher numbers on the last day of early voting. This isn't true of all counties for example Howard county had more show up in the middle days. 
+https://datawrapper.dwcdn.net/7FI8I/1/ 
 
 ```{r}
+
+earlyyouth <- read_csv("data/ev_totals_18_24.csv")
+glimpse(earlyyouth)
+
+earlywomen <- read_csv("data/ev_totals_women.csv")
+glimpse(earlywomen)
+
 ```
 
 **Q3.** After reading the recent CNN story about fundraising called "[How elderly dementia patients are unwittingly fueling political campaigns](https://www.cnn.com/interactive/2024/10/politics/political-fundraising-elderly-election-invs-dg/)," you decide to dig into the habits of Maryland political donors who give money via ActBlue and WinRed.
@@ -93,4 +107,13 @@ Compare the two maps. What do you think are the most interesting story ideas in 
 **A3.** 
 
 ```{r}
+
+
+winred <- read_csv("data/md_winred_zip_totals.csv")
+glimpse(winred)
+
+
+actblue <- read_csv("data/md_actblue_zip_totals.csv")
+glimpse(actblue)
+
 ```
