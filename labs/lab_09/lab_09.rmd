@@ -105,6 +105,10 @@ Then export each dataframe using `write_csv` and make two (2) choropleth maps in
 Compare the two maps. What do you think are the most interesting story ideas in both, and what would you want to know more about? Put the answer below along with the URLs of your maps.
 
 **A3.** 
+https://datawrapper.dwcdn.net/SCDf8/1/
+https://datawrapper.dwcdn.net/21Q6W/1/
+
+It was hard to find a pattern from the Republican map. That being said I think there is a story here about the population or rural/city status of an area and how many donations there are per capita. It seemed for Republicans that other than a few outliers the areas with the highest per capita donations had low populations. For Democrats the relationship was less purely population because Baltimore did not have high rates per capita but Montgomery County and other populated counties did. There also might be something to be said here about the effect of DC or the vacation houses/mansions on the coast. I would want more information about the wealth of the zipcodes and what kind of area it is.  
 
 ```{r}
 
@@ -115,5 +119,45 @@ glimpse(winred)
 
 actblue <- read_csv("data/md_actblue_zip_totals.csv")
 glimpse(actblue)
+
+
+acs5 <- load_variables(2022, "acs5", cache=TRUE)
+View(acs5)
+#B01003_001
+
+pop2022 <- get_acs(geography = "zcta", variables = "B01003_001", year = 2022)
+glimpse(pop2022)
+pop2022 <- pop2022 |>
+  mutate(NAME = str_remove(NAME, "ZCTA5 "))
+pop2022 <- pop2022|>
+  rename(zip = NAME)
+
+
+winred <- winred|>
+  mutate(zip = as.character(zip))
+
+winredpop <- winred|>
+  inner_join(pop2022, by = "zip")
+glimpse(winredpop)
+
+actblue <- actblue|>
+  mutate(zip = as.character(zip))
+
+actbluepop <- actblue|>
+  inner_join(pop2022, by = "zip")
+glimpse(actbluepop)
+
+
+winredpop <- winredpop|>
+  mutate(donations_per_1000 = (donations / estimate) * 1000)
+glimpse(winredpop)
+
+actbluepop <- actbluepop|>
+  mutate(donations_per_1000 = (donations / estimate) * 1000)
+glimpse(actbluepop)
+
+
+write_csv(winredpop, "data/md_winred_zip_totals.csv")
+write_csv(actbluepop, "data/md_actblue_zip_totals.csv")
 
 ```
