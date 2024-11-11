@@ -1,0 +1,287 @@
+---
+title: "lab_10"
+author: "Isabelle Jensen"
+date: "2024-11-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## You will need
+
+-   the tidyverse, janitor and tigris libraries
+-   you might choose to use the tidycensus library for Q3
+
+## Load libraries and establish settings
+
+**Task** Create a codeblock and load appropriate packages and settings for this lab.
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load libraries
+library(tidyverse)
+library(janitor)
+library(tigris)
+library(tidycensus)
+
+```
+
+Let's explore the election results from last night and make some maps!
+
+## Questions
+
+**Q1.** Make a county-level map of Maryland's results for U.S. Senate using `md_senate_county_24.csv` in the data folder, calculating the difference between Angela Alsobrooks's percentage of the total votes and Larry Hogan's percentage of the total votes and displaying that percentage difference on the map. What is the story here, and what is the county with the most interesting results?
+
+**A1.**PG County, Montgomery County, Charles County, Howard County, and Baltimore County and City contributed the most to Alsobrooks win. I think the story here is how many counties leaned toward Hogan and yet Alsobrooks won. There are many counties that were strongly for Hogan but Prince George's County is the only county that meets a majority for Alsobrooks. Prince George's County is interesting in that there are questions about why it was more for Alsobrooks and if it's larger population was the main way she won. 
+
+I did struggle with the map for this one. For some reason the bay is not shown and the eastern counties are pushed into the middle.
+
+```{r}
+
+senate <- read_csv("data/md_senate_county_24.csv")
+glimpse(senate)
+senate <- senate |>
+  mutate(
+    Alsobrooks = as.numeric(Alsobrooks),
+    Hogan = as.numeric(Hogan),
+    Scott = as.numeric(Scott)
+  )
+
+
+senate <- senate|>
+  mutate(alsohogandifference = ((Alsobrooks / (Hogan+Scott+Alsobrooks)) * 100) - ((Hogan / (Hogan+Scott+Alsobrooks)) * 100))
+
+counties <- counties()
+md_counties <- counties |>
+  filter(STATEFP == "24")
+md_counties |>
+  ggplot() +
+  geom_sf() +
+  theme_minimal()
+glimpse(md_counties)
+
+senate <- senate %>%
+  mutate(County = case_when(
+    County == "Baltimore City" ~ "Baltimore city",
+    County == "Baltimore County" ~ "Baltimore",
+    County == "Saint Mary's" ~ "St. Mary's",
+    TRUE ~ County
+  ))
+
+
+senatecounties <- md_counties |> left_join(senate, by=c("NAME"="County"))
+
+glimpse(senatecounties)
+
+
+
+ggplot() +
+  geom_sf(data=senatecounties, aes(fill=alsohogandifference)) +
+    theme_minimal() 
+
+
+
+
+
+####map is wonky and doesn't show the bay. Trying another method. 
+
+md_county_population
+md_county_population <- md_county_population |>
+  rename(County = NAME) |>
+  mutate(County = str_to_title(str_remove_all(County,", Maryland|County"))) |>
+  mutate(County = str_trim(County,side="both")) |>
+  rename(population = estimate) |>
+  select(County, population, geometry)
+
+md_county_population <- md_county_population |>
+  mutate(County = if_else(County == "St. Mary's", "Saint Mary's", County)) |> 
+  mutate(County = if_else(County == "Baltimore", "Baltimore County", County))
+
+senatecountiespopulation <- md_counties |> left_join(senate, by=c("NAME"="County"))
+
+ggplot() +
+  geom_sf(data=senatecountiespopulation, aes(fill=alsohogandifference)) +
+    theme_minimal() 
+
+```
+
+**Q2.** Make a county-level map showing the difference between Donald Trump's county-level performance this year and Larry Hogan's, using percentages to compare the two as you did in Q1. You can use the dataframe you initially loaded for Q1, and you'll need to load the 2024 presidential results in the data folder and join them to it before proceeding. Are there any counties where Trump got a higher percentage than Hogan? How would you describe the map showing the Trump-Hogan difference?
+
+Also answer this: is a map the best way to present this data? What else could you make that might convey more information?
+
+**A2.** There are no counties where Trump got more than 1 percentage point more voters than Hogan. But there are some where they were equal or Trump got more votes than Hogan by less than 1% of the votes. This happened in Garrett County, Allegany County, and Somerset County. The map shows that Trump and Hogan generally got similar amounts of voters but that Hogan was more popular than Trump in Maryland. Montegomery County, Anne Arundel County, and Howard County were the counties with the largest favor for Hogan over Trump. I think a bar graph or even side by side numbers might be better than a map. It feels weird to put their percentages against each other on a map when they are in different races. 
+
+```{r}
+president2024 <- read_csv("data/md_pres_county_24.csv")
+glimpse(president2024)
+
+president2024 <- president2024 %>%
+  mutate(County = case_when(
+    County == "Baltimore City" ~ "Baltimore city",
+    County == "Baltimore County" ~ "Baltimore",
+    County == "Saint Mary's" ~ "St. Mary's",
+    TRUE ~ County
+  ))
+
+pressenate24 <- president2024 |> left_join(senate, by=c("County"="County"))
+
+glimpse(pressenate24)
+
+pressenate24 <- pressenate24|>
+  mutate(Hoganpercent = ((Hogan / (Hogan+Scott+Alsobrooks)) * 100)) |>
+  mutate(Trumppercent = ((Trump / (Trump+Harris+Oliver+Stein+Kennedy)) * 100))|>
+   mutate(TrumpHoganDifference = (Trumppercent-Hoganpercent))
+
+glimpse(pressenate24)
+
+counties <- counties()
+md_counties <- counties |>
+  filter(STATEFP == "24")
+md_counties |>
+  ggplot() +
+  geom_sf() +
+  theme_minimal()
+glimpse(md_counties)
+
+
+
+
+pressenate24counties <- md_counties |> left_join(pressenate24, by=c("NAME"="County"))
+
+glimpse(pressenate24counties)
+
+
+
+ggplot() +
+  geom_sf(data=pressenate24counties, aes(fill=TrumpHoganDifference)) +
+    theme_minimal() 
+
+
+
+```
+
+**Q3** Make another map showing the difference between Larry Hogan's county-level performance this year and from his governor race in 2018, using percentages to compare the two as you did in Q2. You can use the dataframe you initially loaded for Q1, and you'll need to load the 2018 governor results in the data folder and join them to it before proceeding. Are there any counties where Hogan did better this year? How would you describe the map showing the difference?
+
+**A3** There don't seem to be any counties where Hogan did better in the 2024 Senate race than in the 2018 Governor race. Hogan did better much better for governor than senate particularly in the more populous central counties such as Prince George, Montgomery, and Baltimore. Hogan's vote percentage was closer in border counties such as Garrett, Cecil, and Somerset. Interestingly Talbot county was the county with the largest difference in vote percentage for Hogan. 
+
+I tried my best but I could not fix Saint Mary's. 
+
+```{r}
+
+gov2018 <- read_csv("data/md_gov_county_18.csv")
+glimpse(gov2018)
+gov2018$County
+
+gov2018 <- gov2018|>
+  mutate(County = str_trim(County),  
+         County = str_to_title(County),  
+         County = case_when(
+           County == "Baltimore City" ~ "Baltimore city",
+           County == "Baltimore County" ~ "Baltimore",
+           County == "Saint Mary's" ~ "St. Mary's",
+           TRUE ~ County
+         ))
+
+
+gov18senate <- gov2018 |> left_join(senate, by=c("County"="County"))
+
+glimpse(gov18senate)
+
+gov18senate <- gov18senate|>
+  mutate(Hogansenate = ((Hogan.y / (Hogan.y+Scott+Alsobrooks)) * 100)) |>
+  mutate(Hogangov = ((Hogan.x / (Hogan.x+Jealous+Quinn+Schlakman+`Write-ins` )) * 100))|>
+   mutate(HoganGovSenateDifference = (Hogangov-Hogansenate))
+
+glimpse(gov18senate)
+
+counties <- counties()
+md_counties <- counties |>
+  filter(STATEFP == "24")
+md_counties |>
+  ggplot() +
+  geom_sf() +
+  theme_minimal()
+glimpse(md_counties)
+
+
+
+
+gov18senatecounties <- md_counties |> left_join(gov18senate, by=c("NAME"="County"))
+
+glimpse(gov18senatecounties)
+
+
+
+ggplot() +
+  geom_sf(data=gov18senatecounties, aes(fill=HoganGovSenateDifference)) +
+    theme_minimal() 
+
+
+
+
+
+```
+
+**Q4.** Choose your own map adventure! In the data folder I've included Maryland county-level results for the abortion rights amendment vote this year, plus the 2020 presidential results by county and 2022 governor's results by county. Using one of those and at least one other contest for comparison, make a county-level map showing what you think is the most interesting aspect of that data, and describe the results in terms of a possible story. You can bring in other data, such as Census information, if you like.
+
+**A4.**Something I have been talking about is leftist voters voting third party as a way to protest Democrat's support for Israel. This is more of an issue in more Muslim states such as Michigan but I thought it would be interesting to compare last election to this election in terms of third party votes in the Presidential. I found that there was a larger increase in third party votes in 2024 particularly in high populous slightly more liberal counties such as Howard, Montgomery, PG, and Charles. Also weirdly Somerset County had a high increase in third party votes. There was no significant decrease in third party votes between 2020 and 2024. This increase in third party votes is interesting and could show a displeasure in the two main parties.
+
+```{r}
+
+
+glimpse(president2024)
+president2020 <- read_csv("data/md_pres_county_20.csv")
+glimpse(president2020)
+
+president2020 <- president2020|>
+  mutate(County = str_trim(County),  
+         County = str_to_title(County),  
+         County = case_when(
+           County == "Baltimore City" ~ "Baltimore city",
+           County == "Baltimore County" ~ "Baltimore",
+           County == "Saint Mary's" ~ "St. Mary's",
+           TRUE ~ County
+         ))
+
+
+Presboth <- president2020 |> left_join(president2024, by=c("County"="County"))
+
+glimpse(Presboth)
+
+Presboth <- Presboth|>
+  mutate(thirdparty2020 = (((Jorgensen+Hawkins+Segal) / (Trump.x+Biden+Jorgensen+Hawkins+Segal)) * 100)) |>
+  mutate(thirdparty2024 = (((Oliver+Stein+Kennedy) / (Trump.y+Harris+Oliver+Stein+Kennedy )) * 100))|>
+   mutate(ThirdPartyDifference = (thirdparty2024-thirdparty2020))
+
+
+glimpse(Presboth)
+
+counties <- counties()
+md_counties <- counties |>
+  filter(STATEFP == "24")
+md_counties |>
+  ggplot() +
+  geom_sf() +
+  theme_minimal()
+glimpse(md_counties)
+
+
+
+
+Presbothcounties <- md_counties |> left_join(Presboth, by=c("NAME"="County"))
+
+glimpse(Presbothcounties)
+
+
+
+ggplot() +
+  geom_sf(data=Presbothcounties, aes(fill=ThirdPartyDifference)) +
+    theme_minimal() 
+
+```
+
+-30-
