@@ -1,0 +1,200 @@
+---
+title: "lab_11"
+author: "Isabelle Jensen"
+date: "2024-11-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## You will need
+
+-   Our usual libraries for working with data, including dates and column names, plus rvest.
+
+## Load libraries and establish settings
+
+**Task** Create a codeblock and load appropriate packages and settings for this lab.
+
+```{r}
+library(rvest)
+library(tidyverse)
+library(janitor)
+library(ggplot2)
+
+library(tibble)
+
+
+library(dplyr)
+library(tidyr)
+library(lubridate)
+```
+
+Let's get to scraping. We'll be working on collecting information about Maryland election results, and then we'll grab some congressional press releases. For Maryland races, we'll focus on Board of Education races using this CNS story as a guide: <https://cnsmaryland.org/2024/11/08/md-conservatives-make-gains-in-school-board-races/>. You should read it.
+
+## Questions
+
+**Q1**. Write code to scrape the table of unofficial results from Frederick County's Board of Education races (<https://elections.maryland.gov/elections/2024/general_Results/gen_results_2024_by_county_11.html>), producing a dataframe that contains the results of that race for each candidate and removing the total. You'll need to identify which table on the page contains the BOE results. All numbers should actually be numbers, including the percentage. Then make a bar chart of the results, noting that the top 3 candidates win.
+
+**A1** Monier, Brennan, and Black won. Black and Bokee were very close with 0.04 percent of the vote and 123 votes separating them. The top four candidates all got between 16 and 17 percent of the vote. 
+
+```{r}
+
+
+educationurl <- "https://elections.maryland.gov/elections/2024/general_Results/gen_results_2024_by_county_11.html"
+
+educationresults <- pres_url |>
+  read_html() |>
+  html_table()
+#this only gave me the presidential results in 6 different tables
+educationresults
+
+educationresults_all <- lapply(tables, html_table)
+educationresults_all
+
+
+educationresults <- educationresults_all[[9]]
+
+educationresults
+educationresults$Percentage
+
+educationresults$Percentage <- gsub("%", "", educationresults$Percentage)
+educationresults$Percentage<-as.numeric(educationresults$Percentage)
+
+summary(educationresults$Percentage)
+
+educationresults <- educationresults %>%
+  filter(Name != "Totals")
+
+educationresults |>
+  ggplot(aes(x = reorder(Name, Percentage), y = Percentage)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() + 
+  labs(
+    title = "Close Race for \nBoard of Education:  \nFour Popular Candidates \nThree Positions",
+    x = "Candidate",
+    y = "Percentage of Votes",
+    caption = "Source: Maryland State Board of Elections"
+  )
+
+educationresults$Total <- gsub(",", "", educationresults$Total)
+educationresults$Total<-as.numeric(educationresults$Total)
+
+educationresults |>
+  ggplot(aes(x = reorder(Name, Total), y = Total)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() + 
+  labs(
+    title = "Close Race for \nBoard of Education:  \nFour Popular Candidates \nThree Positions",
+    x = "Candidate",
+    y = "Total Votes",
+    caption = "Source: Maryland State Board of Elections"
+  )
+```
+
+**Q2** Next, let's scrape the list of press releases from Maryland's Office of the State Prosecutor, <https://osp.maryland.gov/category/press-releases/>. This isn't a table, so you'll need to use `html_elements()` and your browser's inspector and do some clean up on the results. The result should be a dataframe with three columns: title, url and date. HINT: you can extract the date from the title using lubridate OR you can use the `separate` function.
+
+You should have 10 releases when finished, not 20.
+
+Then, write code that finds the most recent release with the word "Campaign" in the title. What election does it refer to?
+
+**A2**There is only article with campaign in the title. It is about the 2022 Maryland Primary Election and the John King's Gubernatorial Campaign being charged a fine. 
+
+```{r}
+
+pressurl <- "https://osp.maryland.gov/category/press-releases/"
+
+pressurl <- read_html(pressurl)
+
+
+releases <- pressurl |> html_elements('a')
+
+
+releases_with_urls <- tibble(
+  name = releases |> html_text(trim = TRUE),
+  url = releases |> html_attr("href")
+)
+
+releases_with_urls
+
+
+
+releases_with_urls <- releases_with_urls |> 
+  filter(!str_detect(url, "^/"))
+
+releases_with_urls <- releases_with_urls |> 
+  filter(str_detect(name, ":"))
+releases_with_urls
+
+
+releases_with_urls <- releases_with_urls|> 
+  mutate(
+    date = str_extract(name, "\\b(January|February|March|April|May|June|July|August|September|October|November|December) \\d{1,2}, \\d{4}\\b"),
+    date = mdy(date) 
+  )
+
+releases_with_urls
+
+releases_with_urls|> 
+  filter(str_detect(name, "Campaign"))
+
+```
+
+**Q3** Sen. Ben Cardin, D-Maryland, has posted hundreds of press releases at <https://www.cardin.senate.gov/?post_type=press-releases>. It would be great to have all of them in a dataframe that has the following columns: date, title and url.
+
+To do this, you will need to scrape the page's html and save that to a variable, and *then* extract the dates, titles and urls into *separate* dataframes using html_elements(). We turn a list into a dataframe using `as_tibble()`.
+
+At the end, you'll have three dataframes that you want to combine into a single dataframe. When we want to combine the rows of identical dataframes, we used `bind_rows()`. If you were combining columns instead of rows, there's a similar function. Use it to put all of the dataframes together into a single one. You are combining columns, not rows.
+
+When you're done, rename the columns so they make sense, then make sure the date column is an actual date.
+
+Finally, tell me what questions you could ask of this data, and what other information about it would be useful to have. Be creative.
+
+**A3** Text data is really interesting. I think senator press releases can be used to look at what kind of policy they like to report back to their consistuents. Do they focus on social policy or economic? Do they focus on bipartisan agreement or opposing other senators? It'd also be interesting to see what periods of time there were more or less press releases. For Cardin since he is retiring I would be interested to see how frequently there were press releases before and after he announced he would retire. 
+
+```{r}
+
+cardinurl <- "https://www.cardin.senate.gov/?post_type=press-releases"
+
+cardinpage <- read_html(cardinurl)
+
+cardin <- cardinpage |> html_elements('a')
+
+cardin_df <- tibble(
+  name = cardin |> html_text(trim = TRUE),
+  url = cardin |> html_attr("href"),
+
+) 
+
+cardin_df
+
+cardin_df <- cardin_df |> 
+  filter(!str_detect(url, "^/"))
+
+
+cardin_df <- cardin_df |> 
+  filter(str_detect(url, "press-releases/"))
+cardin_df
+
+cardin_df <- cardin_df |> 
+  filter(!str_detect(name, "Read More"))
+cardin_df
+
+cardin_df <- cardin_df |> 
+  filter(!str_detect(name, "Press Releases & Statements"))
+cardin_df
+
+#  date= cardinpage |>html_elements('h5')|> html_text(trim = TRUE)
+
+cardin_dates <- cardinpage |> html_elements('h5') |> html_text(trim = TRUE)
+cardin_dates
+
+cardin_df <- cardin_df|>
+  mutate(date = cardin_dates)
+
+cardin_df
+releases_with_urls|> 
+  filter(str_detect(name, "Campaign"))
+
+```
