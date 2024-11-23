@@ -83,6 +83,7 @@ Worcester <- read_excel("data/24_Worcester PP24 CVRs/24PP24_Prov_CVR_SBE.xlsx") 
   mutate(County = "Worcester")
 glimpse(Worcester)
   Worcester$`DEM President of the United States (1) (500001630101)`
+  #24 counties total
 ```
 
 ## Questions to explore
@@ -116,32 +117,279 @@ Proportion of Straight Ticket Voting
 
 
 
-glimpse(Talbot)
-Alleghanydem_columns <- grep("^DEM", names(Alleghany), value = TRUE)
-Alleghanyrep_columns <- grep("^REP", names(Alleghany), value = TRUE)
-
-Alleghany <- Alleghany %>%
-  mutate(
-    dem_votes = rowSums(select(., all_of(Alleghanydem_columns)) == "Selected", na.rm = TRUE),
-    rep_votes = rowSums(select(., all_of(Alleghanyrep_columns)) == "Selected", na.rm = TRUE),
-    total_votes = dem_votes + rep_votes
-  )
 glimpse(Alleghany)
 
-Alleghany$vote_type <- apply(Alleghany, 1, function(row) {
-  dem_votes <- sum(row[Alleghanydem_columns] == "Selected", na.rm = TRUE)
-  rep_votes <- sum(row[Alleghanyrep_columns] == "Selected", na.rm = TRUE)
-  total_votes <- dem_votes + rep_votes
 
-  if (total_votes > 0 && (dem_votes == total_votes || rep_votes == total_votes)) {
-    return("Straight Ticket")
-  } else if (total_votes > 0) {
-    return("Mixed Ticket")
-  } else {
-    return("No Votes")
-  }
-})
-table(Alleghany$total_votes)
+Alleghanydem_columns <- names(Alleghany)[grepl("^DEM ", names(Alleghany))]
+Alleghanyrep_columns <- names(Alleghany)[grepl("^REP ", names(Alleghany))]
+
+# Debug: Check the selected columns
+print(Alleghanydem_columns)
+print(Alleghanyrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+Alleghany <- Alleghany %>%
+  mutate(
+    Alleghanydem_votes = rowSums(select(., all_of(Alleghanydem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Alleghanyrep_votes = rowSums(select(., all_of(Alleghanyrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Alleghanystraight_ticket = case_when(
+      Alleghanydem_votes > 0 & Alleghanyrep_votes == 0 ~ "Democrat",
+      Alleghanyrep_votes > 0 & Alleghanydem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+Alleghanysummary_counts <- Alleghany %>%
+  count(Alleghanystraight_ticket)
+
+# View the results
+print(Alleghanysummary_counts)
+
+
+#Democrat	3389
+#Mixed	6
+#Republican	7201
+
+glimpse(BaltimoreCity)
+
+
+BaltimoreCitydem_columns <- names(BaltimoreCity)[grepl("^DEM ", names(BaltimoreCity))]
+BaltimoreCityrep_columns <- names(BaltimoreCity)[grepl("^REP ", names(BaltimoreCity))]
+
+# Debug: Check the selected columns
+print(BaltimoreCitydem_columns)
+print(BaltimoreCityrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+BaltimoreCity <- BaltimoreCity %>%
+  mutate(
+    BaltimoreCitydem_votes = rowSums(select(., all_of(BaltimoreCitydem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    BaltimoreCityrep_votes = rowSums(select(., all_of(BaltimoreCityrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    BaltimoreCitystraight_ticket = case_when(
+      BaltimoreCitydem_votes > 0 & BaltimoreCityrep_votes == 0 ~ "Democrat",
+      BaltimoreCityrep_votes > 0 & BaltimoreCitydem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+BaltimoreCitysummary_counts <- BaltimoreCity %>%
+  count(BaltimoreCitystraight_ticket)
+
+# View the results
+print(BaltimoreCitysummary_counts)
+
+
+#Democrat	93660
+#Mixed	44
+#Republican	4528
+
+
+
+glimpse(Frederick)
+
+
+Frederickdem_columns <- names(Frederick)[grepl("^DEM ", names(Frederick))]
+Frederickrep_columns <- names(Frederick)[grepl("^REP ", names(Frederick))]
+
+# Debug: Check the selected columns
+print(Frederickdem_columns)
+print(Frederickrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+Frederick <- Frederick %>%
+  mutate(
+    Frederickdem_votes = rowSums(select(., all_of(Frederickdem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Frederickrep_votes = rowSums(select(., all_of(Frederickrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Frederickstraight_ticket = case_when(
+      Frederickdem_votes > 0 & Frederickrep_votes == 0 ~ "Democrat",
+      Frederickrep_votes > 0 & Frederickdem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+Fredericksummary_counts <- Frederick %>%
+  count(Frederickstraight_ticket)
+
+# View the results
+print(Fredericksummary_counts)
+
+#Democrat	25747
+#Mixed	4243
+#Republican	20444
+
+
+
+
+glimpse(Howard)
+
+
+Howarddem_columns <- names(Howard)[grepl("^DEM ", names(Howard))]
+Howardrep_columns <- names(Howard)[grepl("^REP ", names(Howard))]
+
+# Debug: Check the selected columns
+print(Howarddem_columns)
+print(Howardrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+Howard <- Howard %>%
+  mutate(
+    Howarddem_votes = rowSums(select(., all_of(Howarddem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Howardrep_votes = rowSums(select(., all_of(Howardrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Howardstraight_ticket = case_when(
+      Howarddem_votes > 0 & Howardrep_votes == 0 ~ "Democrat",
+      Howardrep_votes > 0 & Howarddem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+Howardsummary_counts <- Howard %>%
+  count(Howardstraight_ticket)
+
+# View the results
+print(Howardsummary_counts)
+
+#Democrat	44704	
+#Mixed	4130	
+#Republican	15889	
+
+
+
+#Montgomery
+glimpse(Montgomery)
+
+
+Montgomerydem_columns <- names(Montgomery)[grepl("^DEM ", names(Montgomery))]
+Montgomeryrep_columns <- names(Montgomery)[grepl("^REP ", names(Montgomery))]
+
+# Debug: Check the selected columns
+print(Montgomerydem_columns)
+print(Montgomeryrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+Montgomery <- Montgomery %>%
+  mutate(
+    Montgomerydem_votes = rowSums(select(., all_of(Montgomerydem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Montgomeryrep_votes = rowSums(select(., all_of(Montgomeryrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Montgomerystraight_ticket = case_when(
+     Montgomerydem_votes > 0 & Montgomeryrep_votes == 0 ~ "Democrat",
+      Montgomeryrep_votes > 0 & Montgomerydem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+Montgomerysummary_counts <- Montgomery %>%
+  count(Montgomerystraight_ticket)
+
+# View the results
+print(Montgomerysummary_counts)
+
+#Democrat	77529
+#Mixed	5567
+#Republican	16903
+
+
+
+#PG
+glimpse(PG)
+
+
+PGdem_columns <- names(PG)[grepl("^DEM ", names(PG))]
+PGrep_columns <- names(PG)[grepl("^REP ", names(PG))]
+
+# Debug: Check the selected columns
+print(PGdem_columns)
+print(PGrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+PG <- PG %>%
+  mutate(
+    PGdem_votes = rowSums(select(., all_of(PGdem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    PGrep_votes = rowSums(select(., all_of(PGrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    PGstraight_ticket = case_when(
+     PGdem_votes > 0 & PGrep_votes == 0 ~ "Democrat",
+      PGrep_votes > 0 & PGdem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+PGsummary_counts <- PG %>%
+  count(PGstraight_ticket)
+
+# View the results
+print(PGsummary_counts)
+
+#Democrat	92170	
+#Mixed	1685	
+#Republican	6144
+
+
+#Talbot
+glimpse(Talbot)
+
+
+Talbotdem_columns <- names(Talbot)[grepl("^DEM ", names(Talbot))]
+Talbotrep_columns <- names(Talbot)[grepl("^REP ", names(Talbot))]
+
+# Debug: Check the selected columns
+print(Talbotdem_columns)
+print(Talbotrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+Talbot <- Talbot %>%
+  mutate(
+    Talbotdem_votes = rowSums(select(., all_of(Talbotdem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Talbotrep_votes = rowSums(select(., all_of(Talbotrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    Talbotstraight_ticket = case_when(
+     Talbotdem_votes > 0 & Talbotrep_votes == 0 ~ "Democrat",
+      Talbotrep_votes > 0 & Talbotdem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+Talbotsummary_counts <- Talbot %>%
+  count(Talbotstraight_ticket)
+
+# View the results
+print(Talbotsummary_counts)
+
+#Democrat	3917	
+#Mixed	77	
+#Republican	3938		
 
 ```
 
