@@ -116,8 +116,59 @@ Proportion of Straight Ticket Voting
 ```{r pressure, echo=FALSE}
 
 
-
+####Allegheny####
 glimpse(Alleghany)
+
+
+Alleghanydem_columns <- names(Alleghany)[grepl("^DEM ", names(Alleghany))]
+Alleghanyrep_columns <- names(Alleghany)[grepl("^REP ", names(Alleghany))]
+
+# Add a classification column using ifelse
+Alleghany <- Alleghany |>
+  mutate(
+    straight_ticket = ifelse(
+      # Check if all DEM columns have valid votes and all REP columns are empty or invalid
+      !apply(select(., Alleghanydem_columns) == "undervote" | select(., Alleghanydem_columns) == "overvote" | is.na(select(., Alleghanydem_columns)), 1, any) &
+      apply(select(., Alleghanyrep_columns) == "undervote" | select(., Alleghanyrep_columns) == "overvote" | is.na(select(., Alleghanyrep_columns)), 1, all),
+      "Democrat",
+      ifelse(
+        # Check if all REP columns have valid votes and all DEM columns are empty or invalid
+        !apply(select(., Alleghanyrep_columns) == "undervote" | select(., Alleghanyrep_columns) == "overvote" | is.na(select(., Alleghanyrep_columns)), 1, any) &
+        apply(select(., Alleghanydem_columns) == "undervote" | select(., Alleghanydem_columns) == "overvote" | is.na(select(., Alleghanydem_columns)), 1, all),
+        "Republican",
+        # Default to "Mixed" if neither condition is met
+        "Mixed"
+      )
+    )
+  )
+
+# Summarize results grouped by a relevant variable (e.g., precinct)
+summary_by_precinct <- Alleghany |>
+  group_by(Precinct) |>
+  filter(
+    straight_ticket == "Democrat" |
+    straight_ticket == "Republican" |
+    straight_ticket == "Mixed"
+  ) |>
+  summarize(
+    dem_count = sum(straight_ticket == "Democrat"),
+    rep_count = sum(straight_ticket == "Republican"),
+    mixed_count = sum(straight_ticket == "Mixed"),
+    total_count = n()
+  ) |>
+  arrange(desc(total_count))
+
+# View the summarized results
+summary_by_precinct
+
+
+
+
+
+
+
+
+
 
 
 Alleghanydem_columns <- names(Alleghany)[grepl("^DEM ", names(Alleghany))]
@@ -155,6 +206,49 @@ print(Alleghanysummary_counts)
 #Mixed	6
 #Republican	7201
 
+#####Anne Arundel######
+
+glimpse(AnneArundel)
+
+
+AnneArundeldem_columns <- names(AnneArundel)[grepl("^DEM ", names(AnneArundel))]
+AnneArundelrep_columns <- names(AnneArundel)[grepl("^REP ", names(AnneArundel))]
+
+# Debug: Check the selected columns
+print(AnneArundeldem_columns)
+print(AnneArundelrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+AnneArundel <- AnneArundel %>%
+  mutate(
+    AnneArundeldem_votes = rowSums(select(., all_of(AnneArundeldem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    AnneArundelrep_votes = rowSums(select(., all_of(AnneArundelrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    AnneArundelstraight_ticket = case_when(
+      AnneArundeldem_votes > 0 & AnneArundelrep_votes == 0 ~ "Democrat",
+      AnneArundelrep_votes > 0 & AnneArundeldem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+AnneArundelsummary_counts <- AnneArundel %>%
+  count(AnneArundelstraight_ticket)
+
+# View the results
+print(AnneArundelsummary_counts)
+
+
+#Democrat	54747
+#Mixed	3377
+#Republican	35442
+
+
+
+#####Baltimore City######
 glimpse(BaltimoreCity)
 
 
@@ -193,8 +287,47 @@ print(BaltimoreCitysummary_counts)
 #Mixed	44
 #Republican	4528
 
+####Baltimore County#####
+glimpse(BaltimoreCounty)
 
 
+BaltimoreCountydem_columns <- names(BaltimoreCounty)[grepl("^DEM ", names(BaltimoreCounty))]
+BaltimoreCountyrep_columns <- names(BaltimoreCounty)[grepl("^REP ", names(BaltimoreCounty))]
+
+# Debug: Check the selected columns
+print(BaltimoreCountydem_columns)
+print(BaltimoreCountyrep_columns)
+
+# Calculate valid votes and classify straight-ticket vs mixed-party voters
+BaltimoreCounty <- BaltimoreCounty %>%
+  mutate(
+    BaltimoreCountydem_votes = rowSums(select(., all_of(BaltimoreCountydem_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    BaltimoreCountyrep_votes = rowSums(select(., all_of(BaltimoreCountyrep_columns)) %>%
+                          mutate(across(everything(),
+                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
+    BaltimoreCountystraight_ticket = case_when(
+      BaltimoreCountydem_votes > 0 & BaltimoreCountyrep_votes == 0 ~ "Democrat",
+     BaltimoreCountyrep_votes > 0 & BaltimoreCountydem_votes == 0 ~ "Republican",
+      TRUE ~ "Mixed"
+    )
+  )
+
+# Summarize the classification
+BaltimoreCountysummary_counts <- BaltimoreCounty %>%
+  count(BaltimoreCountystraight_ticket)
+
+# View the results
+print(BaltimoreCountysummary_counts)
+
+
+#Democrat	67065
+#Mixed	77
+#Republican	32857
+
+
+####Frederick County######
 glimpse(Frederick)
 
 
@@ -233,7 +366,7 @@ print(Fredericksummary_counts)
 #Republican	20444
 
 
-
+####Howard County######
 
 glimpse(Howard)
 
@@ -274,7 +407,7 @@ print(Howardsummary_counts)
 
 
 
-#Montgomery
+#####Montgomery County####
 glimpse(Montgomery)
 
 
@@ -314,7 +447,7 @@ print(Montgomerysummary_counts)
 
 
 
-#PG
+#####PG County#####
 glimpse(PG)
 
 
@@ -353,7 +486,7 @@ print(PGsummary_counts)
 #Republican	6144
 
 
-#Talbot
+#####Talbot County#####
 glimpse(Talbot)
 
 
@@ -391,5 +524,40 @@ print(Talbotsummary_counts)
 #Mixed	77	
 #Republican	3938		
 
+
+
 ```
 
+
+
+```{r}
+
+glimpse(Alleghany)
+
+Alleghany |>
+  group_by(`DEM Representative in Congress (6) (5000016361)`) |>
+   filter((`DEM Representative in Congress (6) (5000016361)`== "undervote"))|>
+  summarize(count = n()) |>
+  arrange(desc(count))
+#dem rep undervote 272
+
+Alleghany |>
+  filter(!is.na(`DEM Representative in Congress (6) (5000016361)`)) |>
+  summarize(total = n()) 
+#total votes 3394
+
+
+
+Alleghany |>
+  group_by(`REP Representative in Congress (6) (5000016362)`) |>
+   filter((`REP Representative in Congress (6) (5000016362)`== "undervote"))|>
+  summarize(count = n()) |>
+  arrange(desc(count))
+#dem rep undervote 170
+
+Alleghany |>
+  filter(!is.na(`REP Representative in Congress (6) (5000016362)`)) |>
+  summarize(total = n()) 
+#total votes 7202
+
+```
