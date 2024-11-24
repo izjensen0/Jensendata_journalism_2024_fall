@@ -111,423 +111,112 @@ For Codes or definitions, everything seems to be straightforward, and races we a
 unfamiliar with could be researched. We will probably work off of state-wide races like the Senate race and try to answer our questions based on what we have. 
 
 
-Proportion of Straight Ticket Voting
-
-```{r pressure, echo=FALSE}
-
-
-####Allegheny####
-glimpse(Alleghany)
-
-
-Alleghanydem_columns <- names(Alleghany)[grepl("^DEM ", names(Alleghany))]
-Alleghanyrep_columns <- names(Alleghany)[grepl("^REP ", names(Alleghany))]
-
-# Add a classification column using ifelse
-Alleghany <- Alleghany |>
-  mutate(
-    straight_ticket = ifelse(
-      # Check if all DEM columns have valid votes and all REP columns are empty or invalid
-      !apply(select(., Alleghanydem_columns) == "undervote" | select(., Alleghanydem_columns) == "overvote" | is.na(select(., Alleghanydem_columns)), 1, any) &
-      apply(select(., Alleghanyrep_columns) == "undervote" | select(., Alleghanyrep_columns) == "overvote" | is.na(select(., Alleghanyrep_columns)), 1, all),
-      "Democrat",
-      ifelse(
-        # Check if all REP columns have valid votes and all DEM columns are empty or invalid
-        !apply(select(., Alleghanyrep_columns) == "undervote" | select(., Alleghanyrep_columns) == "overvote" | is.na(select(., Alleghanyrep_columns)), 1, any) &
-        apply(select(., Alleghanydem_columns) == "undervote" | select(., Alleghanydem_columns) == "overvote" | is.na(select(., Alleghanydem_columns)), 1, all),
-        "Republican",
-        # Default to "Mixed" if neither condition is met
-        "Mixed"
-      )
-    )
-  )
-
-# Summarize results grouped by a relevant variable (e.g., precinct)
-summary_by_precinct <- Alleghany |>
-  group_by(Precinct) |>
-  filter(
-    straight_ticket == "Democrat" |
-    straight_ticket == "Republican" |
-    straight_ticket == "Mixed"
-  ) |>
-  summarize(
-    dem_count = sum(straight_ticket == "Democrat"),
-    rep_count = sum(straight_ticket == "Republican"),
-    mixed_count = sum(straight_ticket == "Mixed"),
-    total_count = n()
-  ) |>
-  arrange(desc(total_count))
-
-# View the summarized results
-summary_by_precinct
-
-
-
-
-
-
-
-
-
-
-
-Alleghanydem_columns <- names(Alleghany)[grepl("^DEM ", names(Alleghany))]
-Alleghanyrep_columns <- names(Alleghany)[grepl("^REP ", names(Alleghany))]
-
-# Debug: Check the selected columns
-print(Alleghanydem_columns)
-print(Alleghanyrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-Alleghany <- Alleghany %>%
-  mutate(
-    Alleghanydem_votes = rowSums(select(., all_of(Alleghanydem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Alleghanyrep_votes = rowSums(select(., all_of(Alleghanyrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Alleghanystraight_ticket = case_when(
-      Alleghanydem_votes > 0 & Alleghanyrep_votes == 0 ~ "Democrat",
-      Alleghanyrep_votes > 0 & Alleghanydem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-Alleghanysummary_counts <- Alleghany %>%
-  count(Alleghanystraight_ticket)
-
-# View the results
-print(Alleghanysummary_counts)
-
-
-#Democrat	3389
-#Mixed	6
-#Republican	7201
-
-#####Anne Arundel######
-
-glimpse(AnneArundel)
-
-
-AnneArundeldem_columns <- names(AnneArundel)[grepl("^DEM ", names(AnneArundel))]
-AnneArundelrep_columns <- names(AnneArundel)[grepl("^REP ", names(AnneArundel))]
-
-# Debug: Check the selected columns
-print(AnneArundeldem_columns)
-print(AnneArundelrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-AnneArundel <- AnneArundel %>%
-  mutate(
-    AnneArundeldem_votes = rowSums(select(., all_of(AnneArundeldem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    AnneArundelrep_votes = rowSums(select(., all_of(AnneArundelrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    AnneArundelstraight_ticket = case_when(
-      AnneArundeldem_votes > 0 & AnneArundelrep_votes == 0 ~ "Democrat",
-      AnneArundelrep_votes > 0 & AnneArundeldem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-AnneArundelsummary_counts <- AnneArundel %>%
-  count(AnneArundelstraight_ticket)
-
-# View the results
-print(AnneArundelsummary_counts)
-
-
-#Democrat	54747
-#Mixed	3377
-#Republican	35442
-
-
-
-#####Baltimore City######
-glimpse(BaltimoreCity)
-
-
-BaltimoreCitydem_columns <- names(BaltimoreCity)[grepl("^DEM ", names(BaltimoreCity))]
-BaltimoreCityrep_columns <- names(BaltimoreCity)[grepl("^REP ", names(BaltimoreCity))]
-
-# Debug: Check the selected columns
-print(BaltimoreCitydem_columns)
-print(BaltimoreCityrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-BaltimoreCity <- BaltimoreCity %>%
-  mutate(
-    BaltimoreCitydem_votes = rowSums(select(., all_of(BaltimoreCitydem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    BaltimoreCityrep_votes = rowSums(select(., all_of(BaltimoreCityrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    BaltimoreCitystraight_ticket = case_when(
-      BaltimoreCitydem_votes > 0 & BaltimoreCityrep_votes == 0 ~ "Democrat",
-      BaltimoreCityrep_votes > 0 & BaltimoreCitydem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-BaltimoreCitysummary_counts <- BaltimoreCity %>%
-  count(BaltimoreCitystraight_ticket)
-
-# View the results
-print(BaltimoreCitysummary_counts)
-
-
-#Democrat	93660
-#Mixed	44
-#Republican	4528
-
-####Baltimore County#####
-glimpse(BaltimoreCounty)
-
-
-BaltimoreCountydem_columns <- names(BaltimoreCounty)[grepl("^DEM ", names(BaltimoreCounty))]
-BaltimoreCountyrep_columns <- names(BaltimoreCounty)[grepl("^REP ", names(BaltimoreCounty))]
-
-# Debug: Check the selected columns
-print(BaltimoreCountydem_columns)
-print(BaltimoreCountyrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-BaltimoreCounty <- BaltimoreCounty %>%
-  mutate(
-    BaltimoreCountydem_votes = rowSums(select(., all_of(BaltimoreCountydem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    BaltimoreCountyrep_votes = rowSums(select(., all_of(BaltimoreCountyrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    BaltimoreCountystraight_ticket = case_when(
-      BaltimoreCountydem_votes > 0 & BaltimoreCountyrep_votes == 0 ~ "Democrat",
-     BaltimoreCountyrep_votes > 0 & BaltimoreCountydem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-BaltimoreCountysummary_counts <- BaltimoreCounty %>%
-  count(BaltimoreCountystraight_ticket)
-
-# View the results
-print(BaltimoreCountysummary_counts)
-
-
-#Democrat	67065
-#Mixed	77
-#Republican	32857
-
-
-####Frederick County######
-glimpse(Frederick)
-
-
-Frederickdem_columns <- names(Frederick)[grepl("^DEM ", names(Frederick))]
-Frederickrep_columns <- names(Frederick)[grepl("^REP ", names(Frederick))]
-
-# Debug: Check the selected columns
-print(Frederickdem_columns)
-print(Frederickrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-Frederick <- Frederick %>%
-  mutate(
-    Frederickdem_votes = rowSums(select(., all_of(Frederickdem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Frederickrep_votes = rowSums(select(., all_of(Frederickrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Frederickstraight_ticket = case_when(
-      Frederickdem_votes > 0 & Frederickrep_votes == 0 ~ "Democrat",
-      Frederickrep_votes > 0 & Frederickdem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-Fredericksummary_counts <- Frederick %>%
-  count(Frederickstraight_ticket)
-
-# View the results
-print(Fredericksummary_counts)
-
-#Democrat	25747
-#Mixed	4243
-#Republican	20444
-
-
-####Howard County######
-
-glimpse(Howard)
-
-
-Howarddem_columns <- names(Howard)[grepl("^DEM ", names(Howard))]
-Howardrep_columns <- names(Howard)[grepl("^REP ", names(Howard))]
-
-# Debug: Check the selected columns
-print(Howarddem_columns)
-print(Howardrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-Howard <- Howard %>%
-  mutate(
-    Howarddem_votes = rowSums(select(., all_of(Howarddem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Howardrep_votes = rowSums(select(., all_of(Howardrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Howardstraight_ticket = case_when(
-      Howarddem_votes > 0 & Howardrep_votes == 0 ~ "Democrat",
-      Howardrep_votes > 0 & Howarddem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-Howardsummary_counts <- Howard %>%
-  count(Howardstraight_ticket)
-
-# View the results
-print(Howardsummary_counts)
-
-#Democrat	44704	
-#Mixed	4130	
-#Republican	15889	
-
-
-
-#####Montgomery County####
-glimpse(Montgomery)
-
-
-Montgomerydem_columns <- names(Montgomery)[grepl("^DEM ", names(Montgomery))]
-Montgomeryrep_columns <- names(Montgomery)[grepl("^REP ", names(Montgomery))]
-
-# Debug: Check the selected columns
-print(Montgomerydem_columns)
-print(Montgomeryrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-Montgomery <- Montgomery %>%
-  mutate(
-    Montgomerydem_votes = rowSums(select(., all_of(Montgomerydem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Montgomeryrep_votes = rowSums(select(., all_of(Montgomeryrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Montgomerystraight_ticket = case_when(
-     Montgomerydem_votes > 0 & Montgomeryrep_votes == 0 ~ "Democrat",
-      Montgomeryrep_votes > 0 & Montgomerydem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-Montgomerysummary_counts <- Montgomery %>%
-  count(Montgomerystraight_ticket)
-
-# View the results
-print(Montgomerysummary_counts)
-
-#Democrat	77529
-#Mixed	5567
-#Republican	16903
-
-
-
-#####PG County#####
-glimpse(PG)
-
-
-PGdem_columns <- names(PG)[grepl("^DEM ", names(PG))]
-PGrep_columns <- names(PG)[grepl("^REP ", names(PG))]
-
-# Debug: Check the selected columns
-print(PGdem_columns)
-print(PGrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-PG <- PG %>%
-  mutate(
-    PGdem_votes = rowSums(select(., all_of(PGdem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    PGrep_votes = rowSums(select(., all_of(PGrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    PGstraight_ticket = case_when(
-     PGdem_votes > 0 & PGrep_votes == 0 ~ "Democrat",
-      PGrep_votes > 0 & PGdem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-PGsummary_counts <- PG %>%
-  count(PGstraight_ticket)
-
-# View the results
-print(PGsummary_counts)
-
-#Democrat	92170	
-#Mixed	1685	
-#Republican	6144
-
-
-#####Talbot County#####
-glimpse(Talbot)
-
-
-Talbotdem_columns <- names(Talbot)[grepl("^DEM ", names(Talbot))]
-Talbotrep_columns <- names(Talbot)[grepl("^REP ", names(Talbot))]
-
-# Debug: Check the selected columns
-print(Talbotdem_columns)
-print(Talbotrep_columns)
-
-# Calculate valid votes and classify straight-ticket vs mixed-party voters
-Talbot <- Talbot %>%
-  mutate(
-    Talbotdem_votes = rowSums(select(., all_of(Talbotdem_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Talbotrep_votes = rowSums(select(., all_of(Talbotrep_columns)) %>%
-                          mutate(across(everything(),
-                                        ~ !is.na(.) & . != "undervote" & . != "overvote"))),
-    Talbotstraight_ticket = case_when(
-     Talbotdem_votes > 0 & Talbotrep_votes == 0 ~ "Democrat",
-      Talbotrep_votes > 0 & Talbotdem_votes == 0 ~ "Republican",
-      TRUE ~ "Mixed"
-    )
-  )
-
-# Summarize the classification
-Talbotsummary_counts <- Talbot %>%
-  count(Talbotstraight_ticket)
-
-# View the results
-print(Talbotsummary_counts)
-
-#Democrat	3917	
-#Mixed	77	
-#Republican	3938		
-
-
+* Since a lot of these school boards are non partisan for the most part, we are going
+to observe the split ticketing of Republican candidates voting for or against 1776 candidates
+as discussed in (this article)[https://cnsmaryland.org/2024/11/08/md-conservatives-make-gains-in-school-board-races/] and researched by us. 
+```{r School Board Split Tickets}
+#### Frederick #### 
+table(Frederick$`Board of Education (50000167144)`)
+# "Democrat" endorsed candidates: Bokee, Lowe, Monier, King Wilson Sr
+# 1776 supported candidates: Colt Morningstar Black, Jaime Kiersten Brennan
+# (source)[https://www.frederickdemocrats.org/md-voting/upcoming-elections/board-education]
+Frederick <- Frederick |> 
+  mutate(REP_BOE = case_when(
+    `Board of Education (50000167144)` == "Colt Morningstar Black (10022022.0000302)" ~ "REP",
+    `Board of Education (50000167144)` == "Jaime Kiersten Brennan (10022022.0000119)" ~ "REP",
+    TRUE ~ "Other"
+  ),
+  not_split = ifelse(str_detect(`Ballot Style`, "Rep") & REP_BOE == "REP" | str_detect(`Ballot Style`, "Dem") & REP_BOE != "REP" , 1 , 0)) # if they are REP and voted for one of the 1776 ed candidates OR Dem and did NOT vote for one of the 1776 candidates, they did NOT split their PRIMARY ballot
+table(Frederick$not_split) 
+# 34949 not split
+# 15485 split from party candidates
+
+Frederick_Rep <- Frederick |> 
+  filter(str_detect(`Ballot Style`, "Rep"))
+table(Frederick_Rep$not_split)
+# 9127 Republicans split
+# 11330 republicans did not split (voted for 1776 candidates)
+11330/(11330+9127)*100 # 55% did not split
+
+#### Washington #### 
+table(Washington$`Board of Education (50000167344)`)
+# 1776 candidates: Charles A. Burkett, Ashley McCusker, Victoria Beachley, April Ann Zentmeyer*
+# "Dem" endorsed Candidates: Pieter Bickford, Stan Stouffer, Robin Merchant Spickler, Melissa Williams
+# (source)[https://bluevoterguide.org/district/MD/Washington_County/21474/169]
+Washington <- Washington |> 
+  mutate(REP_BOE = case_when(
+    `Board of Education (50000167344)` == "Charles A. Burkett (10031031.0000509)" ~ "REP",
+    `Board of Education (50000167344)` == "Ashley McCusker (10031031.0000542)" ~ "REP",
+    `Board of Education (50000167344)` == "Victoria Beachley (10031031.0000172)" ~ "REP",
+    `Board of Education (50000167344)` == "Melissa Williams (10031031.0000656)" ~ "REP",
+    TRUE ~ "Other"
+  ),
+  not_split = ifelse(str_detect(`Ballot Style`, "Rep") & REP_BOE == "REP" | 
+                       str_detect(`Ballot Style`, "Dem") & REP_BOE != "REP" , 1 , 0)) # if they are REP and voted for one of the 1776 ed candidates OR Dem and did NOT vote for one of the 1776 candidates, they did NOT split their PRIMARY ballot
+table(Washington$not_split) 
+# 12965 not split
+# 11545 split from party candidates
+
+Washington_Rep <- Washington |> 
+  filter(str_detect(`Ballot Style`, "Rep"))
+table(Washington_Rep$not_split)
+# 6737 Republicans did not split (voted for 1776 candidates) 
+6737/(6737+7302)*100 # 48% Rep did not split
+# 7302 Republicans did split
+
+
+# conservative candidates: Joseph Marchio, Paul Harrison, Melissa Goshorn
+#### Talbot #### 
+table(Talbot$`Board of Education (2) (50000173444)`)
+# 1776 candidates: Ann C. O'Connor, Kerry Gunshenan, Karla Wieland-Cherry
+
+Talbot <- Talbot |> 
+  mutate(REP_BOE = case_when(
+    `Board of Education (2) (50000173444)` == "Ann C. O'Connor (10122127.0000735)" ~ "REP",
+    TRUE ~ "Other"
+  ),
+  not_split = ifelse(str_detect(`Ballot Style`, "Rep") & REP_BOE == "REP" | 
+                       str_detect(`Ballot Style`, "Dem") & REP_BOE != "REP" , 1 , 0)) # if they are REP and voted for one of the 1776 ed candidates OR Dem and did NOT vote for one of the 1776 candidates, they did NOT split their PRIMARY ballot
+table(Talbot$not_split) 
+# 4077 not split
+# 3855 split from party candidates
+
+Talbot_Rep <- Talbot |> 
+  filter(str_detect(`Ballot Style`, "Rep"))
+table(Talbot_Rep$not_split)
+# 239 Republicans did not split (voted for 1776 candidates) 
+239/(239+3701)*100 # 6% Rep did not split
+# 3701 Republicans did split
+
+#### Anne Arundel #### 
+
+# Conservative, not 1776 candidates: Chuck Yocum, Latoya Nkongolo, Dawn Pullium
+# (source)[https://www.somdnews.com/news/state/conservative-pac-dems-face-off-over-maryland-school-board-races/article_084d9d36-9537-11ef-9d33-03374e9ddf74.html] 
+table(AnneArundel$`Board of Education (1) (50000176644)`)
+table(AnneArundel$`Board of Education (3) (50000173844)`) # Yocum
+table(AnneArundel$`Board of Education (4) (50000176744)`)
+table(AnneArundel$`Board of Education (5) (50000176844)`) # Latoya
+
+AnneArundel <- AnneArundel |> 
+  mutate(REP_BOE = case_when(
+    `Board of Education (3) (50000173844)` == "Chuck Yocum (10024024.0000151)" ~ "REP",
+    `Board of Education (5) (50000176844)` == "LaToya Nkongolo (10008008.0000078)" ~ "REP",
+    TRUE ~ "Other"
+  ),
+  not_split = ifelse(str_detect(`Ballot Style`, "Rep") & REP_BOE == "REP" | 
+                       str_detect(`Ballot Style`, "Dem") & REP_BOE != "REP" , 1 , 0)) # if they are REP and voted for one of the 1776 ed candidates OR Dem and did NOT vote for one of the 1776 candidates, they did NOT split their PRIMARY ballot
+table(AnneArundel$not_split) 
+# 55953 not split
+# 37613 split from party candidates
+
+AnneArundel_Rep <- AnneArundel |> 
+  filter(str_detect(`Ballot Style`, "Rep"))
+table(AnneArundel_Rep$not_split)
+# 3903 Republicans did not split (voted for 1776 candidates) 
+3903/(3903+31555)*100 # 11% Rep did not split
+# 31555 Republicans did split
 
 ```
-
 Undervote Coding
 
 Montgomery
