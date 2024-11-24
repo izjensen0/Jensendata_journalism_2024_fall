@@ -528,36 +528,141 @@ print(Talbotsummary_counts)
 
 ```
 
+Undervote Coding
 
+Montgomery
 
 ```{r}
 
-glimpse(Alleghany)
-
-Alleghany |>
-  group_by(`DEM Representative in Congress (6) (5000016361)`) |>
-   filter((`DEM Representative in Congress (6) (5000016361)`== "undervote"))|>
-  summarize(count = n()) |>
-  arrange(desc(count))
-#dem rep undervote 272
-
-Alleghany |>
-  filter(!is.na(`DEM Representative in Congress (6) (5000016361)`)) |>
-  summarize(total = n()) 
-#total votes 3394
+glimpse(Montgomery)
 
 
+Montgomery |>
+  filter(
+    `DEM President of the United States (4) (500001630104)` == "undervote" |
+    `DEM President of the United States (6) (500001630106)` == "undervote" |
+    `DEM President of the United States (8) (500001630108)` == "undervote"
+  ) |>
+  summarize(
+    `Race 4` = sum(`DEM President of the United States (4) (500001630104)` == "undervote", na.rm = TRUE),
+    `Race 6` = sum(`DEM President of the United States (6) (500001630106)` == "undervote", na.rm = TRUE),
+    `Race 8` = sum(`DEM President of the United States (8) (500001630108)` == "undervote", na.rm = TRUE)
+  )
+5 +	61+	269	
+#335 undervotes for president
 
-Alleghany |>
-  group_by(`REP Representative in Congress (6) (5000016362)`) |>
-   filter((`REP Representative in Congress (6) (5000016362)`== "undervote"))|>
-  summarize(count = n()) |>
-  arrange(desc(count))
-#dem rep undervote 170
+Montgomery |>
+  summarize(
+    `Total DEM (4)` = sum(!is.na(`DEM President of the United States (4) (500001630104)`)),
+    `Total DEM (6)` = sum(!is.na(`DEM President of the United States (6) (500001630106)`)),
+    `Total DEM (8)` = sum(!is.na(`DEM President of the United States (8) (500001630108)`))
+  )
+2329 + 12548 + 62687
+#77564
 
-Alleghany |>
-  filter(!is.na(`REP Representative in Congress (6) (5000016362)`)) |>
-  summarize(total = n()) 
-#total votes 7202
+335/77564
+#0.4% of all democratic presidential votes were undervotes
+
+
+Montgomery |>
+  filter(
+    `REP President of the United States (4) (500001630204)` == "undervote" |
+    `REP President of the United States (6) (500001630206)` == "undervote" |
+    `REP President of the United States (8) (500001630208)` == "undervote"
+  ) |>
+  summarize(
+    `REP Race 4` = sum(`REP President of the United States (4) (500001630204)` == "undervote", na.rm = TRUE),
+    `REP Race 6` = sum(`REP President of the United States (6) (500001630206)` == "undervote", na.rm = TRUE),
+    `REP Race 8` = sum(`REP President of the United States (8) (500001630208)` == "undervote", na.rm = TRUE)
+  )
+13	+0 +	348
+#361 undervotes for Rep pres
+
+Montgomery |>
+  summarize(
+    `Total REP (4)` = sum(!is.na(`REP President of the United States (4) (500001630204)`)),
+    `Total REP (6)` = sum(!is.na(`REP President of the United States (6) (500001630206)`)),
+    `Total REP (8)` = sum(!is.na(`REP President of the United States (8) (500001630208)`))
+  )
+
+435+0 +11988
+
+361/12423
+#2.9% undervotes for Rep president out of total votes
+
+
+Montgomery |>
+  filter(
+    `DEM U.S. Senator (5000017641)` == "undervote" )|>
+  summarize(
+    Total = sum(`DEM U.S. Senator (5000017641)`  == "undervote", na.rm = TRUE),
+  )
+#897 senate dem undervotes
+
+Montgomery |>
+  summarize(
+    totalvotes=sum(!is.na(`DEM U.S. Senator (5000017641)` )))
+#Total senate dem votes 77564	
+
+897/77564	
+#1.2% undervote
+
+```
+
+Undervote Howard
+
+```{r}
+
+glimpse(Howard)
+
+
+Howard |>
+  filter(
+    `DEM President of the United States (3) (500001630103)`  == "undervote" ) |>
+  summarize(
+    Count = sum(`DEM President of the United States (3) (500001630103)`  == "undervote", na.rm = TRUE)
+  )
+#231 undervotes for president
+
+Howard |>
+  summarize(
+    Count = sum(!is.na( `DEM President of the United States (3) (500001630103)`))
+  )
+#44726	total dem pres votes
+
+231/44726
+#0.5% of all democratic presidential votes were undervotes
+
+
+Howard |>
+  filter(
+    `REP President of the United States (3) (500001630203)`   == "undervote" ) |>
+  summarize(
+    Count = sum(`REP President of the United States (3) (500001630203)`   == "undervote", na.rm = TRUE)
+  )
+#512 undervotes for president
+
+Howard |>
+  summarize(
+    Count = sum(!is.na(  `REP President of the United States (3) (500001630203)` ))
+  )
+#15901
+
+512/15901
+#3.2% undervote for president rep candidates
+
+
+Howard |>
+  filter(
+    `DEM President of the United States (3) (500001630103)`  == "undervote" ) |>
+  summarize(
+    Count = sum(`DEM President of the United States (3) (500001630103)`  == "undervote", na.rm = TRUE)
+  )
+#231 undervotes for president
+
+Howard |>
+  summarize(
+    Count = sum(!is.na( `DEM President of the United States (3) (500001630103)`))
+  )
 
 ```
