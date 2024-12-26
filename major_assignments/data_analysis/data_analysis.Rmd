@@ -217,6 +217,11 @@ table(AnneArundel_Rep$not_split)
 # 31555 Republicans did split
 
 ```
+
+
+
+
+
 Undervote Coding
 
 Montgomery
@@ -437,17 +442,6 @@ Howard |>
 #1.6% undervotes for rep senate
 
 
-undervotes_df <- tibble(
-  County = character(),
-  DEM_President_Undervotes = numeric(),
-  DEM_President_Percentage = numeric(),
-  REP_President_Undervotes = numeric(),
-  REP_President_Percentage = numeric(),
-  DEM_Senate_Undervotes = numeric(),
-  DEM_Senate_Percentage = numeric(),
-  REP_Senate_Undervotes = numeric(),
-  REP_Senate_Percentage = numeric()
-)
 
 # Add Montgomery County results manually
 Howard_results <- tibble(
@@ -468,6 +462,7 @@ Howard_results <- tibble(
 
 # Append to the DataFrame
 undervotes_df <- bind_rows(undervotes_df, Howard_results)
+
 undervotes_df
 
 
@@ -553,18 +548,7 @@ Frederick |>
 442/20457
 #2.2% of all republican senate votes were undervotes
 
-undervotes_df <- data.frame(
-  County = character(),
-  DEM_President_Undervotes = numeric(),
-  DEM_President_Percentage = numeric(),
-  REP_President_Undervotes = numeric(),
-  REP_President_Percentage = numeric(),
-  DEM_Senate_Undervotes = numeric(),
-  DEM_Senate_Percentage = numeric(),
-  REP_Senate_Undervotes = numeric(),
-  REP_Senate_Percentage = numeric(),
-  stringsAsFactors = FALSE 
-)
+
 
 Frederick_results <- data.frame(
   County = "Frederick",
@@ -587,9 +571,6 @@ undervotes_df <- rbind(undervotes_df, Frederick_results)
 
 print(undervotes_df)
 
-
-undervotes_df <- undervotes_df %>%
-  select(-Vote_Difference)
 
 ```
 
@@ -2616,7 +2597,7 @@ undervotes_df <- undervotes_df %>%
   scale_fill_viridis_c(option = "magma") +  
   theme_minimal() +                         
   labs(
-    title = "Percentage of Democratic Voters that Voted in Primary",
+    title = "Percentage of Democratic Primary Voters out of All Primary Voters",
     fill = "Dem % Votes"
   )
   
@@ -2629,7 +2610,7 @@ undervotes_df <- undervotes_df %>%
     title = "Percentage Undervotes Republican Minus Democrat",
     fill = "Difference in Undervotes"
   )
-  
+  write.csv(undervotes_df, file = "undervotes_data.csv", row.names = FALSE)
    
    summary(undervotes_df$DEM_President_Percentage)
    #Mean 0.6889
